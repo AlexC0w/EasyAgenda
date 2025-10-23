@@ -127,18 +127,16 @@ const AdminPage = () => {
     try {
       await api.patch(`/citas/${id}`, { estado: 'cancelada' });
       setStatus({ state: 'success', message: 'Cita cancelada correctamente.' });
-  const handleEventClick = async (info) => {
-    const citaId = info.event.id;
-    const confirmCancel = window.confirm('¿Deseas cancelar esta cita?');
-    if (!confirmCancel) return;
-    try {
-      await api.patch(`/citas/${citaId}`, { estado: 'cancelada' });
-      setStatus({ state: 'success', message: 'Cita cancelada.' });
       await loadCitas(selectedBarbero);
     } catch (error) {
       console.error(error);
       setStatus({ state: 'error', message: 'No se pudo cancelar la cita.' });
     }
+  };
+
+  const handleEventClick = async (info) => {
+    const citaId = info.event.id;
+    await handleCancel(citaId);
   };
 
   const handleReschedule = async (cita) => {
@@ -316,7 +314,7 @@ const AdminPage = () => {
             editable
             droppable
             eventDrop={handleEventDrop}
-            eventClick={({ event }) => handleCancel(event.id)}
+            eventClick={handleEventClick}
             locale="es"
             locales={[esLocale]}
             nowIndicator
