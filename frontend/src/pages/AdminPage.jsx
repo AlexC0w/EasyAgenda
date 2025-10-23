@@ -63,6 +63,11 @@ const AdminPage = () => {
           servicio: cita.servicio.nombre,
           precio: cita.servicio.precio,
         },
+        
+        className:
+          cita.estado === 'cancelada'
+            ? 'bg-rose-500/30 border border-rose-500/50'
+            : 'bg-emerald-500/30 border border-emerald-500/50',
       })),
     [citas]
   );
@@ -122,6 +127,13 @@ const AdminPage = () => {
     try {
       await api.patch(`/citas/${id}`, { estado: 'cancelada' });
       setStatus({ state: 'success', message: 'Cita cancelada correctamente.' });
+  const handleEventClick = async (info) => {
+    const citaId = info.event.id;
+    const confirmCancel = window.confirm('¿Deseas cancelar esta cita?');
+    if (!confirmCancel) return;
+    try {
+      await api.patch(`/citas/${citaId}`, { estado: 'cancelada' });
+      setStatus({ state: 'success', message: 'Cita cancelada.' });
       await loadCitas(selectedBarbero);
     } catch (error) {
       console.error(error);
