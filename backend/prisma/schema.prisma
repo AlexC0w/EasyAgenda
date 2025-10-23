@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Barbero {
+  id             Int      @id @default(autoincrement())
+  nombre         String
+  horario_inicio String
+  horario_fin    String
+  dias_laborales String   @default("[]")
+  duracion_cita  Int
+  citas          Cita[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Servicio {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  duracion  Int
+  precio    Decimal   @db.Decimal(10, 2)
+  citas     Cita[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Cita {
+  id          Int      @id @default(autoincrement())
+  barbero_id  Int
+  servicio_id Int
+  cliente     String
+  telefono    String
+  fecha       DateTime
+  hora        String
+  estado      String   @default("confirmada")
+  recordatorioEnviado Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  barbero  Barbero @relation(fields: [barbero_id], references: [id])
+  servicio Servicio @relation(fields: [servicio_id], references: [id])
+
+  @@index([barbero_id, fecha])
+}
