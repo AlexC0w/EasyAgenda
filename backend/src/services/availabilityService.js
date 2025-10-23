@@ -101,20 +101,5 @@ export const isSlotAvailable = async (barberoId, fechaISO, hora, duration) => {
     return false;
   }
 
-  if (!duration) {
-    return true;
-  }
-
-  const barbero = await prisma.barbero.findUnique({ where: { id: barberoId } });
-  const blocksNeeded = Math.ceil(duration / barbero.duracion_cita);
-  const startMinutes = toMinutes(hora);
-  const slotSet = new Set(available);
-
-  for (let block = 0; block < blocksNeeded; block += 1) {
-    const slotTime = toTimeString(startMinutes + block * barbero.duracion_cita);
-    if (!slotSet.has(slotTime)) {
-      return false;
-    }
-  }
   return true;
 };
