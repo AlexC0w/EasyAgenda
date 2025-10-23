@@ -1,0 +1,34 @@
+version: '3.9'
+
+services:
+  db:
+    image: mariadb:11
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpassword
+      MARIADB_DATABASE: agenda_octane
+      MARIADB_USER: agenda
+      MARIADB_PASSWORD: agenda123
+    ports:
+      - '3306:3306'
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+  backend:
+    build: ./backend
+    restart: always
+    depends_on:
+      - db
+    environment:
+      PORT: 4000
+      DATABASE_URL: mysql://agenda:agenda123@db:3306/agenda_octane
+      WHATSAPP_API_URL: ${WHATSAPP_API_URL:-}
+      WHATSAPP_API_KEY: ${WHATSAPP_API_KEY:-}
+    ports:
+      - '4000:4000'
+    command: sh -c "npx prisma migrate deploy && node src/index.js"
+    volumes:
+      - ./backend/prisma:/app/prisma
+
+volumes:
+  mariadb_data:
