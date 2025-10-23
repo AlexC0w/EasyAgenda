@@ -58,7 +58,7 @@ const AdminPage = () => {
           servicio: cita.servicio.nombre,
           precio: cita.servicio.precio,
         },
-        },
+        
         className:
           cita.estado === 'cancelada'
             ? 'bg-rose-500/30 border border-rose-500/50'
