@@ -147,6 +147,44 @@ const AdminPage = () => {
     }
   };
 
+  const dayHeaderContent = (arg) => {
+    const dayName = arg.date.toLocaleDateString('es-MX', { weekday: 'short' });
+    const dayNumber = arg.date.getDate();
+
+    return {
+      html: `
+        <div class="fc-col-header-chip">
+          <span class="fc-chip-day">${dayName.toUpperCase()}</span>
+          <span class="fc-chip-date">${dayNumber}</span>
+        </div>
+      `,
+    };
+  };
+
+  const slotLabelContent = (arg) => {
+    const formatter = new Intl.DateTimeFormat('es-MX', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+    const parts = formatter.formatToParts(arg.date);
+    const hour = parts.find((part) => part.type === 'hour')?.value ?? '';
+    const minute = parts.find((part) => part.type === 'minute')?.value ?? '';
+    const period = parts
+      .find((part) => part.type === 'dayPeriod')
+      ?.value.replace(/[.\s]/g, '')
+      .toUpperCase();
+
+    return {
+      html: `
+        <div class="fc-slot-label-chip">
+          <span class="fc-slot-label-time">${hour}:${minute}</span>
+          <span class="fc-slot-label-meridiem">${period || ''}</span>
+        </div>
+      `,
+    };
+  };
+
   return (
     <div className="space-y-8">
       <div className="rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 shadow-xl shadow-emerald-500/10">
@@ -295,7 +333,10 @@ const AdminPage = () => {
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView="timeGridWeek"
             headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
-            slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+            dayHeaderContent={dayHeaderContent}
+            dayHeaderClassNames={() => ['fc-day-header-modern']}
+            slotLabelContent={slotLabelContent}
+            slotLabelClassNames={() => ['fc-slot-label-modern']}
             events={events}
             height="auto"
             slotMinTime="08:00:00"

@@ -34,6 +34,10 @@ body {
   box-shadow: 0 25px 60px rgba(15, 118, 110, 0.25);
 }
 
+.fc-theme-emerald .fc-view-harness {
+  padding: 1rem;
+}
+
 .fc-theme-emerald .fc-toolbar.fc-header-toolbar {
   margin-bottom: 1.5rem;
   padding: 0 0.5rem;
@@ -68,9 +72,36 @@ body {
   background-color: rgba(15, 23, 42, 0.72);
 }
 
-.fc-theme-emerald .fc-col-header-cell {
-  background: linear-gradient(135deg, rgba(30, 64, 175, 0.18), rgba(16, 185, 129, 0.18));
+
+.fc-theme-emerald .fc-day-header-modern {
+  background: transparent;
   border: none;
+  padding: 0.75rem 0;
+}
+
+.fc-theme-emerald .fc-col-header-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: linear-gradient(145deg, rgba(14, 165, 233, 0.28), rgba(16, 185, 129, 0.24));
+  border-radius: 1rem;
+  padding: 0.75rem 0.5rem;
+  box-shadow: 0 18px 45px rgba(14, 165, 233, 0.16);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.fc-theme-emerald .fc-chip-day {
+  font-size: 0.7rem;
+  letter-spacing: 0.35em;
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.fc-theme-emerald .fc-chip-date {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f8fafc;
 }
 
 .fc-theme-emerald .fc-daygrid-day.fc-day-today,
@@ -81,15 +112,51 @@ body {
 .fc-theme-emerald .fc-timegrid-axis {
   background: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.78));
   border-right: 1px solid rgba(148, 163, 184, 0.18);
-  color: #a5b4fc;
+  color: #dbeafe;
   font-weight: 600;
   letter-spacing: 0.02em;
+  backdrop-filter: blur(18px);
+  box-shadow: inset -1px 0 0 rgba(16, 185, 129, 0.24);
 }
 
-.fc-theme-emerald .fc-col-header-cell-cushion,
+.fc-theme-emerald .fc-timegrid-axis-cushion {
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  letter-spacing: 0.3em;
+  color: rgba(94, 234, 212, 0.85);
+}
+
+
 .fc-theme-emerald .fc-timegrid-slot-label-cushion {
   color: #cbd5f5;
   font-weight: 600;
+}
+
+.fc-theme-emerald .fc-slot-label-modern {
+  background: transparent;
+  border: none;
+  padding-right: 0.75rem;
+}
+
+.fc-theme-emerald .fc-slot-label-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  text-transform: uppercase;
+}
+
+.fc-theme-emerald .fc-slot-label-time {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.fc-theme-emerald .fc-slot-label-meridiem {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: rgba(94, 234, 212, 0.9);
 }
 
 .fc-theme-emerald .fc-timegrid-slot-label-frame {
@@ -106,13 +173,26 @@ body {
 }
 
 .fc-theme-emerald .fc-timegrid-slot-lane {
-  background-image: linear-gradient(
-    90deg,
-    rgba(148, 163, 184, 0.08) 0%,
-    transparent 20%,
-    transparent 80%,
-    rgba(148, 163, 184, 0.08) 100%
-  );
+  position: relative;
+  background: linear-gradient(90deg, rgba(15, 118, 110, 0.08), rgba(30, 64, 175, 0.08));
+  border-bottom: none;
+}
+
+.fc-theme-emerald .fc-timegrid-slot-lane::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.1), transparent 60%);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.fc-theme-emerald .fc-timegrid-slot-lane:nth-child(odd)::after {
+  opacity: 0.35;
+}
+
+.fc-theme-emerald .fc-scrollgrid-section > td {
+  border: none;
 }
 
 .fc-theme-emerald .fc-daygrid-day-frame {
