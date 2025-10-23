@@ -11,9 +11,11 @@ router.get(
   validateRequest,
   async (req, res, next) => {
     try {
-      const { fecha } = req.query;
+      const { fecha, servicioId } = req.query;
       const barberoId = Number(req.params.barberoId);
-      const availability = await getAvailability(barberoId, fecha);
+      const availability = await getAvailability(barberoId, fecha, {
+        serviceId: servicioId ? Number(servicioId) : undefined,
+      });
       res.json({ fecha, barberoId, disponibilidad: availability });
     } catch (error) {
       next(error);

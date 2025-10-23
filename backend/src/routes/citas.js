@@ -54,7 +54,9 @@ router.post('/', createAppointmentValidator, validateRequest, async (req, res, n
 
     const disponible = await isSlotAvailable(barbero.id, fecha, hora, servicio.duracion);
     if (!disponible) {
-      const disponibilidad = await getAvailability(barbero.id, fecha);
+      const disponibilidad = await getAvailability(barbero.id, fecha, {
+        duration: servicio.duracion,
+      });
       return res.status(409).json({
         message: 'Horario no disponible',
         disponibilidad,
@@ -100,7 +102,9 @@ router.patch('/:id', updateAppointmentValidator, validateRequest, async (req, re
     if (fecha && hora) {
       const disponible = await isSlotAvailable(cita.barbero_id, fecha, hora, cita.servicio.duracion);
       if (!disponible) {
-        const disponibilidad = await getAvailability(cita.barbero_id, fecha);
+        const disponibilidad = await getAvailability(cita.barbero_id, fecha, {
+          duration: cita.servicio.duracion,
+        });
         return res.status(409).json({
           message: 'Horario no disponible',
           disponibilidad,

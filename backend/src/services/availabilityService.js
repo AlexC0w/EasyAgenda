@@ -16,7 +16,7 @@ const normalizeDay = (date) =>
     .format(date)
     .toLowerCase();
 
-export const getAvailability = async (barberoId, fechaISO) => {
+export const getAvailability = async (barberoId, fechaISO, options = {}) => {
   const fecha = new Date(`${fechaISO}T00:00:00`);
   if (Number.isNaN(fecha.getTime())) {
     throw new Error('Fecha inválida');
@@ -27,6 +27,19 @@ export const getAvailability = async (barberoId, fechaISO) => {
     const error = new Error('Barbero no encontrado');
     error.status = 404;
     throw error;
+  }
+
+  const { serviceId, duration } = options;
+
+  let serviceDuration = duration || null;
+  if (serviceId) {
+    const service = await prisma.servicio.findUnique({ where: { id: Number(serviceId) } });
+    if (!service) {
+      const error = new Error('Servicio no encontrado');
+      error.status = 404;
+      throw error;
+    }
+    serviceDuration = service.duracion;
   }
 
   const workingDays = JSON.parse(barbero.dias_laborales || '[]');
@@ -57,11 +70,25 @@ export const getAvailability = async (barberoId, fechaISO) => {
     }
   });
 
+  const slotDuration = barbero.duracion_cita;
+  const requiredBlocks = Math.max(1, Math.ceil((serviceDuration || slotDuration) / slotDuration));
+  const effectiveDuration = requiredBlocks * slotDuration;
+
   const slots = [];
-  for (let minutes = inicio; minutes + barbero.duracion_cita <= fin; minutes += barbero.duracion_cita) {
-    const time = toTimeString(minutes);
-    if (!ocupados.has(time)) {
-      slots.push(time);
+  for (let minutes = inicio; minutes + slotDuration <= fin; minutes += slotDuration) {
+    if (minutes + effectiveDuration > fin) {
+      continue;
+    }
+    let fits = true;
+    for (let block = 0; block < requiredBlocks; block += 1) {
+      const time = toTimeString(minutes + block * slotDuration);
+      if (ocupados.has(time)) {
+        fits = false;
+        break;
+      }
+    }
+    if (fits) {
+      slots.push(toTimeString(minutes));
     }
   }
 
@@ -69,7 +96,7 @@ export const getAvailability = async (barberoId, fechaISO) => {
 };
 
 export const isSlotAvailable = async (barberoId, fechaISO, hora, duration) => {
-  const available = await getAvailability(barberoId, fechaISO);
+  const available = await getAvailability(barberoId, fechaISO, { duration });
   if (!available.includes(hora)) {
     return false;
   }

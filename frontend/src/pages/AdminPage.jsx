@@ -56,6 +56,8 @@ const AdminPage = () => {
           estado: cita.estado,
           barbero: cita.barbero.nombre,
           servicio: cita.servicio.nombre,
+          precio: cita.servicio.precio,
+        },
         },
         className:
           cita.estado === 'cancelada'
@@ -64,6 +66,26 @@ const AdminPage = () => {
       })),
     [citas]
   );
+
+  const renderEventContent = (eventInfo) => {
+    const { event } = eventInfo;
+    const estado = event.extendedProps.estado;
+    const statusLabel = estado === 'cancelada' ? 'Cancelada' : estado === 'pendiente' ? 'Pendiente' : 'Confirmada';
+
+    return (
+      <div className="flex flex-col gap-1">
+        <span className="text-xs font-semibold leading-tight text-slate-50">{event.title}</span>
+        <span className="text-[10px] uppercase tracking-wide text-slate-300">{statusLabel}</span>
+      </div>
+    );
+  };
+
+  const eventClassNames = (arg) => {
+    const estado = arg.event.extendedProps.estado;
+    if (estado === 'cancelada') return ['fc-event-cancelled'];
+    if (estado === 'pendiente') return ['fc-event-pending'];
+    return ['fc-event-confirmed'];
+  };
 
   const handleEventDrop = async (info) => {
     const { event } = info;
@@ -119,11 +141,12 @@ const AdminPage = () => {
 
       {status.state !== 'idle' && <Alert type={status.state === 'error' ? 'error' : status.state}>{status.message}</Alert>}
 
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 shadow-lg shadow-emerald-500/5">
+      <div className="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900/80 to-slate-950 p-4 shadow-2xl shadow-emerald-500/10">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="timeGridWeek"
           headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
+          slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
           events={events}
           height="auto"
           slotMinTime="08:00:00"
@@ -135,6 +158,10 @@ const AdminPage = () => {
           eventClick={handleEventClick}
           locale="es"
           locales={[esLocale]}
+          nowIndicator
+          eventContent={renderEventContent}
+          eventClassNames={eventClassNames}
+          className="fc-theme-emerald"
         />
       </div>
     </div>

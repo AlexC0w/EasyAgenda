@@ -64,10 +64,10 @@ const BookingPage = () => {
 
   useEffect(() => {
     const loadAvailability = async () => {
-      if (!selectedBarbero || !selectedDate) return;
+      if (!selectedBarbero || !selectedDate || !selectedServicio) return;
       try {
         const response = await api.get(`/disponibles/${selectedBarbero}`, {
-          params: { fecha: selectedDate },
+          params: { fecha: selectedDate, servicioId: selectedServicio },
         });
         setAvailability(response.data.disponibilidad);
       } catch (error) {
@@ -76,17 +76,17 @@ const BookingPage = () => {
       }
     };
     loadAvailability();
-  }, [selectedBarbero, selectedDate]);
+  }, [selectedBarbero, selectedDate, selectedServicio]);
 
   useEffect(() => {
     const loadWeek = async () => {
-      if (!selectedBarbero) return;
+      if (!selectedBarbero || !selectedServicio) return;
       const weekDays = getWeekDays(selectedDate);
       const entries = await Promise.all(
         weekDays.map(async ({ date }) => {
           try {
             const { data } = await api.get(`/disponibles/${selectedBarbero}`, {
-              params: { fecha: date },
+              params: { fecha: date, servicioId: selectedServicio },
             });
             return [date, data.disponibilidad];
           } catch (error) {
@@ -98,11 +98,11 @@ const BookingPage = () => {
       setWeekAvailability(Object.fromEntries(entries));
     };
     loadWeek();
-  }, [selectedBarbero, selectedDate]);
+  }, [selectedBarbero, selectedDate, selectedServicio]);
 
   useEffect(() => {
     setSelectedTime('');
-  }, [selectedDate, selectedBarbero]);
+  }, [selectedDate, selectedBarbero, selectedServicio]);
 
   const week = useMemo(() => {
     const days = getWeekDays(selectedDate);
@@ -137,7 +137,7 @@ const BookingPage = () => {
       event.currentTarget.reset();
       setSelectedTime('');
       const { data } = await api.get(`/disponibles/${selectedBarbero}`, {
-        params: { fecha: selectedDate },
+        params: { fecha: selectedDate, servicioId: selectedServicio },
       });
       setAvailability(data.disponibilidad);
       setWeekAvailability((prev) => ({
@@ -161,6 +161,7 @@ const BookingPage = () => {
   };
 
   const selectedBarberoData = barberos.find((barbero) => String(barbero.id) === selectedBarbero);
+  const selectedServicioData = servicios.find((servicio) => String(servicio.id) === selectedServicio);
 
   return (
     <div className="space-y-8">
@@ -190,12 +191,15 @@ const BookingPage = () => {
               className="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </label>
-          <div className="text-xs text-slate-400">
+          <div className="text-xs text-slate-400 space-y-1">
             {selectedBarberoData && (
               <p>
                 Horario: {selectedBarberoData.horario_inicio} - {selectedBarberoData.horario_fin} · Intervalos de{' '}
                 {selectedBarberoData.duracion_cita} minutos
               </p>
+            )}
+            {selectedServicioData && (
+              <p>Duración del servicio: {selectedServicioData.duracion} minutos</p>
             )}
           </div>
         </div>
