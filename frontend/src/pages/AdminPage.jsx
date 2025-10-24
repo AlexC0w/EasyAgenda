@@ -89,10 +89,11 @@ const AdminPage = () => {
     const estado = event.extendedProps.estado;
     const statusLabel = estado === 'cancelada' ? 'Cancelada' : estado === 'pendiente' ? 'Pendiente' : 'Confirmada';
 
+    // Return the event content with the title and status label
     return (
       <div className="flex flex-col gap-1">
-        <span className="text-xs font-semibold leading-tight text-slate-50">{event.title}</span>
-        <span className="text-[10px] uppercase tracking-wide text-slate-300">{statusLabel}</span>
+      <span className="text-xs font-semibold leading-tight text-slate-50">{event.title}</span>
+      { /*<span className="text-[10px] uppercase tracking-wide text-slate-300">{statusLabel}</span>*/ }
       </div>
     );
   };
@@ -134,11 +135,6 @@ const AdminPage = () => {
     }
   };
 
-  const handleEventClick = async (info) => {
-    const citaId = info.event.id;
-    await handleCancel(citaId);
-  };
-
   const handleReschedule = async (cita) => {
     const currentDate = cita.fecha.split('T')[0];
     const newDate = window.prompt('Nueva fecha (YYYY-MM-DD)', currentDate);
@@ -155,6 +151,44 @@ const AdminPage = () => {
         error.response?.data?.message || 'No fue posible reprogramar la cita. Revisa la disponibilidad.';
       setStatus({ state: 'error', message });
     }
+  };
+
+  const dayHeaderContent = (arg) => {
+    const dayName = arg.date.toLocaleDateString('es-MX', { weekday: 'short' });
+    const dayNumber = arg.date.getDate();
+
+    return {
+      html: `
+        <div class="fc-col-header-chip">
+          <span class="fc-chip-day">${dayName.toUpperCase()}</span>
+          <span class="fc-chip-date">${dayNumber}</span>
+        </div>
+      `,
+    };
+  };
+
+  const slotLabelContent = (arg) => {
+    const formatter = new Intl.DateTimeFormat('es-MX', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+    const parts = formatter.formatToParts(arg.date);
+    const hour = parts.find((part) => part.type === 'hour')?.value ?? '';
+    const minute = parts.find((part) => part.type === 'minute')?.value ?? '';
+    const period = parts
+      .find((part) => part.type === 'dayPeriod')
+      ?.value.replace(/[.\s]/g, '')
+      .toUpperCase();
+
+    return {
+      html: `
+        <div class="fc-slot-label-chip">
+          <span class="fc-slot-label-time">${hour}:${minute}</span>
+          <span class="fc-slot-label-meridiem">${period || ''}</span>
+        </div>
+      `,
+    };
   };
 
   return (
@@ -302,10 +336,12 @@ const AdminPage = () => {
 
         <div className="rounded-3xl border border-slate-800/80 bg-gradient-to-br from-slate-900 via-slate-900/80 to-slate-950 p-4 shadow-2xl shadow-emerald-500/10">
           <FullCalendar
+            themeSystem="jquery-ui"
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView="timeGridWeek"
             headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
-            slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+            dayHeaderContent={dayHeaderContent}            
+            slotLabelContent={slotLabelContent}            
             events={events}
             height="auto"
             slotMinTime="08:00:00"
@@ -320,7 +356,7 @@ const AdminPage = () => {
             nowIndicator
             eventContent={renderEventContent}
             eventClassNames={eventClassNames}
-            className="fc-theme-emerald"
+            className="fc-theme-emerald"          
           />
         </div>
       </div>
