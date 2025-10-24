@@ -63,6 +63,11 @@ const AdminPage = () => {
           servicio: cita.servicio.nombre,
           precio: cita.servicio.precio,
         },
+        
+        className:
+          cita.estado === 'cancelada'
+            ? 'bg-rose-500/30 border border-rose-500/50'
+            : 'bg-emerald-500/30 border border-emerald-500/50',
       })),
     [citas]
   );
@@ -341,11 +346,11 @@ const AdminPage = () => {
             height="auto"
             slotMinTime="08:00:00"
             slotMaxTime="21:00:00"
-            
+            eventOverlap={false}
             editable
             droppable
             eventDrop={handleEventDrop}
-            eventClick={({ event }) => handleCancel(event.id)}
+            eventClick={handleEventClick}
             locale="es"
             locales={[esLocale]}
             nowIndicator
