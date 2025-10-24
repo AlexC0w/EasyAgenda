@@ -84,10 +84,11 @@ const AdminPage = () => {
     const estado = event.extendedProps.estado;
     const statusLabel = estado === 'cancelada' ? 'Cancelada' : estado === 'pendiente' ? 'Pendiente' : 'Confirmada';
 
+    // Return the event content with the title and status label
     return (
       <div className="flex flex-col gap-1">
-        <span className="text-xs font-semibold leading-tight text-slate-50">{event.title}</span>
-        <span className="text-[10px] uppercase tracking-wide text-slate-300">{statusLabel}</span>
+      <span className="text-xs font-semibold leading-tight text-slate-50">{event.title}</span>
+      { /*<span className="text-[10px] uppercase tracking-wide text-slate-300">{statusLabel}</span>*/ }
       </div>
     );
   };
@@ -330,18 +331,17 @@ const AdminPage = () => {
 
         <div className="rounded-3xl border border-slate-800/80 bg-gradient-to-br from-slate-900 via-slate-900/80 to-slate-950 p-4 shadow-2xl shadow-emerald-500/10">
           <FullCalendar
+            themeSystem="jquery-ui"
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView="timeGridWeek"
             headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
-            dayHeaderContent={dayHeaderContent}
-            dayHeaderClassNames={() => ['fc-day-header-modern']}
-            slotLabelContent={slotLabelContent}
-            slotLabelClassNames={() => ['fc-slot-label-modern']}
+            dayHeaderContent={dayHeaderContent}            
+            slotLabelContent={slotLabelContent}            
             events={events}
             height="auto"
             slotMinTime="08:00:00"
             slotMaxTime="21:00:00"
-            eventOverlap={false}
+            
             editable
             droppable
             eventDrop={handleEventDrop}
@@ -351,7 +351,7 @@ const AdminPage = () => {
             nowIndicator
             eventContent={renderEventContent}
             eventClassNames={eventClassNames}
-            className="fc-theme-emerald"
+            className="fc-theme-emerald"          
           />
         </div>
       </div>
