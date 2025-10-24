@@ -31,11 +31,10 @@ Agenda Octane es una solución fullstack para gestionar reservas de una barberí
 
    ```bash
    cd backend
-   npx prisma migrate deploy
-   npx prisma generate
+   npm run prisma:init
    ```
 
-   > Los scripts `npm run dev` y `npm run start` del backend ejecutan automáticamente estas dos tareas antes de levantar el servidor, pero es recomendable correrlas manualmente la primera vez para confirmar que la base de datos está alineada con el código.
+   > El script ejecuta `prisma migrate deploy` y, si detecta que las tablas ya existen (por ejemplo, porque las creaste manualmente), aplica automáticamente `prisma db push` para alinear el esquema antes de correr `prisma generate`. Los comandos `npm run dev` y `npm run start` disparan este paso de forma implícita, pero es recomendable ejecutarlo manualmente la primera vez para validar la conexión.
 
 4. **Carga los datos de ejemplo**
 
