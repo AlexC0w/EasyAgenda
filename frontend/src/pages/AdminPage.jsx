@@ -149,6 +149,11 @@ const AdminPage = () => {
           servicio: cita.servicio.nombre,
           precio: cita.servicio.precio,
         },
+        
+        className:
+          cita.estado === 'cancelada'
+            ? 'bg-rose-500/30 border border-rose-500/50'
+            : 'bg-emerald-500/30 border border-emerald-500/50',
       })),
     [citas]
   );
@@ -168,10 +173,11 @@ const AdminPage = () => {
     const estado = event.extendedProps.estado;
     const statusLabel = estado === 'cancelada' ? 'Cancelada' : estado === 'pendiente' ? 'Pendiente' : 'Confirmada';
 
+    // Return the event content with the title and status label
     return (
       <div className="flex flex-col gap-1">
-        <span className="text-xs font-semibold leading-tight text-slate-50">{event.title}</span>
-        <span className="text-[10px] uppercase tracking-wide text-slate-300">{statusLabel}</span>
+      <span className="text-xs font-semibold leading-tight text-slate-50">{event.title}</span>
+      { /*<span className="text-[10px] uppercase tracking-wide text-slate-300">{statusLabel}</span>*/ }
       </div>
     );
   };

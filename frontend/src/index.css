@@ -14,11 +14,19 @@ body {
     #020617;
 }
 
+thead .fc .fc-theme-emerald .fc-scrollgrid-section-sticky {
+  background-color: transparent !important;
+
+  background: #00B37E !important;
+}
+
 .fc-theme-emerald {
-  --fc-page-bg-color: transparent;
-  --fc-neutral-bg-color: rgba(15, 23, 42, 0.6);
+  --fc-page-bg-color: #0f172a;
+  
+  --fc-neutral-bg-color: rgba(123, 255, 0, 0.6);
   --fc-border-color: rgba(148, 163, 184, 0.12);
   --fc-button-text-color: #0f172a;
+  
   --fc-button-bg-color: #34d399;
   --fc-button-border-color: transparent;
   --fc-button-hover-bg-color: #22c55e;
@@ -30,8 +38,57 @@ body {
   border-radius: 1.25rem;
   backdrop-filter: blur(14px);
   overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.14);
+  border: 1px solid rgba(15, 102, 224, 0.14);
   box-shadow: 0 25px 60px rgba(15, 118, 110, 0.25);
+}
+
+.fc-theme-octane {
+  --fc-bg-color: #0E0E14;
+  --fc-button-bg-color: #7A3FFF;
+  --fc-button-color: #ffffff;
+  --fc-event-bg-color: #00B37E;
+  --fc-event-border-color: #00B37E;
+  --fc-day-header-font-weight: 600;
+  --fc-slot-label-font-size: 0.85rem;
+  --fc-scrollgrid-section-sticky: trasparent;
+}
+
+.fc .fc-scrollgrid-section-sticky > * {
+  background-color:  rgb(15 23 42 / 0.8) !important;
+  color: rgb(148 163 184 / var(--tw-text-opacity, 1));
+  font-size: 14px;
+  
+}
+
+.fc-theme-standard td, .fc-theme-standard th {
+  border-color: rgba(148, 163, 184, 0.12);
+  
+  
+}
+
+.fc-timegrid-event .fc-event-main {
+  font-weight: 600;
+  background: rgba(2, 6, 23, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 179, 126, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 179, 126, 0.1);
+  --fc-event-border-color: #00B37E;
+  color: #f8fafc;
+  transition: all 0.3s ease;
+  padding: 3px;
+}
+
+.fc-event-main:hover {
+  transform: translateY(-2px);
+  background: rgba(2, 6, 23, 0.8);
+  box-shadow: 0 12px 40px rgba(0, 179, 126, 0.2);
+  border-color: rgba(0, 179, 126, 0.5);
+}
+
+.fc-theme-standard .fc-scrollgrid {
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.12);
 }
 
 .fc-theme-emerald .fc-view-harness {
@@ -74,7 +131,8 @@ body {
 
 
 .fc-theme-emerald .fc-day-header-modern {
-  background: transparent;
+  background: #1E1E2E;
+  color: #C4C4C6;
   border: none;
   padding: 0.75rem 0;
 }
