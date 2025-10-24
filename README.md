@@ -82,15 +82,30 @@ Agenda Octane es una solución fullstack para gestionar reservas de una barberí
 
 ### Endpoints principales
 
+**Públicos**
+
 | Método | Ruta | Descripción |
 | ------ | ---- | ----------- |
 | GET | `/barberos` | Lista barberos y su disponibilidad configurada. |
 | GET | `/servicios` | Lista servicios con duración y precio. |
 | GET | `/disponibles/:barberoId?fecha=YYYY-MM-DD` | Devuelve horarios libres para un barbero y fecha dada. |
-| POST | `/citas` | Crea una cita nueva y envía confirmación por WhatsApp. |
-| GET | `/citas` | Lista todas las citas. |
-| GET | `/citas/:barberoId` | Lista citas filtradas por barbero. |
-| PATCH | `/citas/:id` | Permite cancelar o reprogramar una cita. |
+| POST | `/citas` | Crea una cita nueva y envía confirmación por WhatsApp (simulada si no hay API real). |
+
+**Protegidos (token JWT)**
+
+| Método | Ruta | Rol mínimo | Descripción |
+| ------ | ---- | ---------- | ----------- |
+| POST | `/auth/login` | Público | Devuelve token y datos del usuario. |
+| GET | `/auth/me` | Barber | Perfil autenticado con rol y asignación. |
+| GET | `/citas` | Barber | Lista citas del usuario autenticado (o todas si es admin). |
+| GET | `/citas/:barberoId` | Admin | Lista citas filtradas por barbero. |
+| PATCH | `/citas/:id` | Barber | Cancelar o reprogramar citas propias; admin puede modificar todas. |
+| GET | `/users` | Admin | Listado completo de cuentas con teléfono y contraseña en texto plano. |
+| POST | `/users` | Admin | Crear cuentas para administradores o barberos. |
+| PATCH | `/users/:id` | Admin | Actualizar contraseña, teléfono o rol. |
+| DELETE | `/users/:id` | Admin | Eliminar usuarios. |
+| GET | `/business` | Admin | Consultar la información general del negocio. |
+| PUT | `/business` | Admin | Actualizar los datos públicos del estudio. |
 
 ### Variables de entorno (backend)
 
@@ -100,6 +115,7 @@ Agenda Octane es una solución fullstack para gestionar reservas de una barberí
 | `PORT` | Puerto HTTP del servidor Express (por defecto `4000`). |
 | `WHATSAPP_API_URL` | URL de la API externa de WhatsApp (opcional). |
 | `WHATSAPP_API_KEY` | Token Bearer para la API de WhatsApp (opcional). |
+| `JWT_SECRET` | Clave usada para firmar los tokens de acceso. |
 
 Si `WHATSAPP_API_URL` o `WHATSAPP_API_KEY` no están configurados, se realizará un envío simulado mostrando el mensaje en consola.
 
@@ -131,9 +147,19 @@ Si `WHATSAPP_API_URL` o `WHATSAPP_API_KEY` no están configurados, se realizará
 - Añade monitoreo para el cron job y colas de envío si el volumen de citas aumenta.
 - Define mecanismos de reintentos/logging persistente para el módulo de notificaciones.
 
+## 🔐 Autenticación y roles
+
+- **Roles disponibles**: `ADMIN` (acceso total a la agenda, usuarios y configuración) y `BARBER` (solo puede ver y gestionar su propia agenda).
+- Las contraseñas se almacenan cifradas (`bcrypt`) pero la plataforma conserva una copia en texto plano para que el administrador pueda consultarla desde el panel cuando necesite compartirla con su equipo.
+- El archivo `backend/.env.example` incluye la variable `JWT_SECRET`; cámbiala antes de desplegar en producción.
+
 ## 🧪 Datos de ejemplo
 
-El archivo `backend/prisma/seed.sql` inserta dos barberos y tres servicios para comenzar a probar la plataforma inmediatamente.
+El archivo `backend/prisma/seed.sql` inserta:
+
+- Dos usuarios: `admin / admin123` (rol ADMIN) y `carlos / carlos2024` (rol BARBER vinculado al barbero Octavio).
+- Dos barberos de muestra (uno vinculado al usuario `carlos`).
+- Tres servicios listos para reservar.
 
 ---
 

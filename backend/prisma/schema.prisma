@@ -15,6 +15,8 @@ model Barbero {
   dias_laborales String   @default("[]")
   duracion_cita  Int
   citas          Cita[]
+  userId         Int?     @unique
+  user           User?    @relation(fields: [userId], references: [id])
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
@@ -46,4 +48,31 @@ model Cita {
   servicio Servicio @relation(fields: [servicio_id], references: [id])
 
   @@index([barbero_id, fecha])
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  username       String   @unique
+  passwordHash   String
+  passwordPlain  String
+  telefono       String?
+  role           UserRole @default(BARBER)
+  barbero        Barbero?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([role])
+}
+
+model BusinessSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UserRole {
+  ADMIN
+  BARBER
 }

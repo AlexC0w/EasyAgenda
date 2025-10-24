@@ -1,0 +1,80 @@
+-- CreateTable
+CREATE TABLE `Barbero` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `nombre` VARCHAR(191) NOT NULL,
+  `horario_inicio` VARCHAR(191) NOT NULL,
+  `horario_fin` VARCHAR(191) NOT NULL,
+  `dias_laborales` VARCHAR(191) NOT NULL DEFAULT '[]',
+  `duracion_cita` INT NOT NULL,
+  `userId` INT NULL,
+  `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
+  UNIQUE INDEX `Barbero_userId_key`(`userId`),
+  PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Servicio` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `nombre` VARCHAR(191) NOT NULL,
+  `duracion` INT NOT NULL,
+  `precio` DECIMAL(10, 2) NOT NULL,
+  `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
+  PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Cita` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `barbero_id` INT NOT NULL,
+  `servicio_id` INT NOT NULL,
+  `cliente` VARCHAR(191) NOT NULL,
+  `telefono` VARCHAR(191) NOT NULL,
+  `fecha` DATETIME(3) NOT NULL,
+  `hora` VARCHAR(191) NOT NULL,
+  `estado` VARCHAR(191) NOT NULL DEFAULT 'confirmada',
+  `recordatorioEnviado` BOOLEAN NOT NULL DEFAULT false,
+  `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
+  PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `User` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `username` VARCHAR(191) NOT NULL,
+  `passwordHash` VARCHAR(191) NOT NULL,
+  `passwordPlain` VARCHAR(191) NOT NULL,
+  `telefono` VARCHAR(191) NULL,
+  `role` ENUM('ADMIN', 'BARBER') NOT NULL DEFAULT 'BARBER',
+  `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
+  UNIQUE INDEX `User_username_key`(`username`),
+  INDEX `User_role_idx`(`role`),
+  PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `BusinessSetting` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `key` VARCHAR(191) NOT NULL,
+  `value` TEXT NOT NULL,
+  `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
+  UNIQUE INDEX `BusinessSetting_key_key`(`key`),
+  PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- AddForeignKey
+ALTER TABLE `Cita` ADD CONSTRAINT `Cita_barbero_id_fkey` FOREIGN KEY (`barbero_id`) REFERENCES `Barbero`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Cita` ADD CONSTRAINT `Cita_servicio_id_fkey` FOREIGN KEY (`servicio_id`) REFERENCES `Servicio`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Barbero` ADD CONSTRAINT `Barbero_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- CreateIndex
+CREATE INDEX `Cita_barbero_id_fecha_idx` ON `Cita`(`barbero_id`, `fecha`);
