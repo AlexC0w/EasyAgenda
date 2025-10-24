@@ -27,20 +27,17 @@ Agenda Octane es una solución fullstack para gestionar reservas de una barberí
    - Backend: copia `backend/.env.example` a `backend/.env` y ajusta la cadena de conexión a tu servidor MariaDB.
    - Frontend: copia `frontend/.env.example` a `frontend/.env` y ajusta `VITE_API_URL` si el backend corre en otra URL.
 
-3. **Genera el cliente de Prisma**
+3. **Aplica el esquema y genera el cliente de Prisma**
 
    ```bash
    cd backend
+   npx prisma migrate deploy
    npx prisma generate
    ```
 
-4. **Aplica el esquema y datos de ejemplo**
+   > Los scripts `npm run dev` y `npm run start` del backend ejecutan automáticamente estas dos tareas antes de levantar el servidor, pero es recomendable correrlas manualmente la primera vez para confirmar que la base de datos está alineada con el código.
 
-   - Ejecuta las migraciones de Prisma contra tu base de datos MariaDB:
-
-     ```bash
-     npx prisma migrate deploy
-     ```
+4. **Carga los datos de ejemplo**
 
    - Poblado inicial (dos barberos y tres servicios):
 
@@ -139,6 +136,8 @@ Si `WHATSAPP_API_URL` o `WHATSAPP_API_KEY` no están configurados, se realizará
 | `npm run build --prefix frontend` | Construye la aplicación React. |
 | `npm run prisma:generate --prefix backend` | Genera el cliente Prisma. |
 | `npm run prisma:migrate --prefix backend` | Ejecuta migraciones en la base de datos configurada. |
+
+> ¿Ves un error `PrismaClientKnownRequestError` con el código `P2021` (tabla `User` no existe)? Asegúrate de ejecutar `npm run prisma:migrate --prefix backend` para aplicar las migraciones pendientes antes de iniciar sesión.
 
 ## 🔒 Consideraciones de producción
 
