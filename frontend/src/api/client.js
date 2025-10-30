@@ -4,6 +4,12 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000',
 });
 
+const storedToken = typeof window !== 'undefined' ? localStorage.getItem('agenda_octane_token') : null;
+
+if (storedToken) {
+  api.defaults.headers.common.Authorization = `Bearer ${storedToken}`;
+}
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {

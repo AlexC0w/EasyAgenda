@@ -54,6 +54,8 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const { data } = await api.post('/auth/login', credentials);
+      api.defaults.headers.common.Authorization = `Bearer ${data.token}`;
+      localStorage.setItem(STORAGE_KEY, data.token);
       setToken(data.token);
       setUser(data.user);
       return data.user;
@@ -63,6 +65,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    delete api.defaults.headers.common.Authorization;
     setToken(null);
     setUser(null);
   };
