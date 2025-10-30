@@ -367,6 +367,7 @@ const AdminPage = () => {
 
   return (
     <div className="space-y-8">
+      {/* Header */}
       <div className="rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 shadow-xl shadow-emerald-500/10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
@@ -414,8 +415,10 @@ const AdminPage = () => {
 
       {status.state !== 'idle' && <Alert type={status.state}>{status.message}</Alert>}
 
+      {/* Agenda Tab */}
       {(activeTab === 'agenda' || !isAdmin) && (
         <div className="space-y-8">
+          {/* Metrics */}
           <div className="grid gap-4 md:grid-cols-4">
             <div className="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5">
               <div className="flex items-center justify-between text-sm text-slate-400">
@@ -449,144 +452,146 @@ const AdminPage = () => {
             </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-[320px,1fr]">
-            <div className="space-y-6">
-              <div className="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold uppercase tracking-widest text-slate-300">Filtro</h3>
-                  <RefreshCcw
-                    className="h-4 w-4 cursor-pointer text-slate-500 transition hover:text-emerald-300"
-                    onClick={() => loadCitas(isAdmin ? selectedBarbero : '')}
-                  />
-                </div>
-                {isAdmin ? (
-                  <div className="mt-4 space-y-4">
-                    <SelectField
-                      label="Barbero"
-                      options={barberoOptions}
-                      value={selectedBarbero}
-                      onChange={setSelectedBarbero}
-                      placeholder="Selecciona un barbero"
-                    />
-                  </div>
-                ) : (
-                  <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm text-emerald-200">
-                    <p className="font-semibold">Tu agenda</p>
-                    <p className="text-xs text-emerald-200/70">
-                      Solo puedes visualizar y administrar las citas asignadas a tu perfil.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5">
-                <h3 className="text-sm font-semibold uppercase tracking-widest text-slate-300">Acciones rápidas</h3>
-                <div className="mt-4 space-y-3 text-sm text-slate-400">
-                  <button
-                    type="button"
-                    onClick={() => loadCitas(isAdmin ? selectedBarbero : '')}
-                    className="w-full rounded-xl border border-slate-700/70 bg-slate-900 px-4 py-3 text-left text-slate-200 transition hover:border-emerald-400/60 hover:text-emerald-200"
-                  >
-                    Actualizar agenda
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-slate-800/80 bg-slate-900/80 p-6">
+          {/* Filtros y Acciones rápidas en una sola fila */}
+          <div className="flex flex-col gap-6 md:flex-row md:gap-6">
+            {/* Filtro */}
+            <div className="flex-1 rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-white">Agenda semanal</h3>
-                <span className="text-xs uppercase tracking-[0.3em] text-emerald-300/70">FullCalendar</span>
-              </div>
-              <div className="mt-4 overflow-hidden rounded-2xl border border-slate-800/60 bg-slate-950/40 p-2">
-                <FullCalendar
-                  height="auto"
-                  locale={esLocale}
-                  plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                  initialView="timeGridWeek"
-                  slotMinTime="08:00:00"
-                  slotMaxTime="20:00:00"
-                  headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
-                  events={events}
-                  eventContent={renderEventContent}
-                  eventClassNames={eventClassNames}
-                  editable
-                  droppable
-                  eventDrop={handleEventDrop}
-                  dayHeaderContent={dayHeaderContent}
-                  slotLabelContent={slotLabelContent}
-                  slotEventOverlap={false}
-                  nowIndicator
-                  eventDidMount={(info) => {
-                    info.el.setAttribute('title', `${info.event.title}\n${info.event.extendedProps.estado}`);
-                  }}
+                <h3 className="text-sm font-semibold uppercase tracking-widest text-slate-300">Filtro</h3>
+                <RefreshCcw
+                  className="h-4 w-4 cursor-pointer text-slate-500 transition hover:text-emerald-300"
+                  onClick={() => loadCitas(isAdmin ? selectedBarbero : '')}
                 />
               </div>
-              {loading && (
-                <p className="mt-4 text-sm text-slate-400">Cargando agenda...</p>
+              {isAdmin ? (
+                <div className="mt-4 space-y-4">
+                  <SelectField
+                    label="Barbero"
+                    options={barberoOptions}
+                    value={selectedBarbero}
+                    onChange={setSelectedBarbero}
+                    placeholder="Selecciona un barbero"
+                  />
+                </div>
+              ) : (
+                <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm text-emerald-200">
+                  <p className="font-semibold">Tu agenda</p>
+                  <p className="text-xs text-emerald-200/70">
+                    Solo puedes visualizar y administrar las citas asignadas a tu perfil.
+                  </p>
+                </div>
               )}
-              <div className="mt-6 overflow-hidden rounded-2xl border border-slate-800/80">
-                <table className="w-full text-left text-sm text-slate-300">
-                  <thead className="bg-slate-900/80 text-xs uppercase tracking-widest text-slate-400">
+            </div>
+            {/* Acciones rápidas */}
+            <div className="flex-1 rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-widest text-slate-300">Acciones rápidas</h3>
+              <div className="mt-4 space-y-3 text-sm text-slate-400">
+                <button
+                  type="button"
+                  onClick={() => loadCitas(isAdmin ? selectedBarbero : '')}
+                  className="w-full rounded-xl border border-slate-700/70 bg-slate-900 px-4 py-3 text-left text-slate-200 transition hover:border-emerald-400/60 hover:text-emerald-200"
+                >
+                  Actualizar agenda
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Agenda semanal y tabla de citas debajo, ocupando todo el ancho */}
+          <div className="rounded-3xl border border-slate-800/80 bg-slate-900/80 p-6 mt-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-white">Agenda semanal</h3>
+              <span className="text-xs uppercase tracking-[0.3em] text-emerald-300/70">FullCalendar</span>
+            </div>
+            <div className="mt-4 overflow-hidden rounded-2xl border border-slate-800/60 bg-slate-950/40 p-2">
+              <FullCalendar
+                height="auto"
+                locale={esLocale}
+                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                initialView="timeGridWeek"
+                slotMinTime="08:00:00"
+                slotMaxTime="20:00:00"
+                headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
+                events={events}
+                eventContent={renderEventContent}
+                eventClassNames={eventClassNames}
+                editable
+                droppable
+                eventDrop={handleEventDrop}
+                dayHeaderContent={dayHeaderContent}
+                slotLabelContent={slotLabelContent}
+                slotEventOverlap={false}
+                nowIndicator
+                eventDidMount={(info) => {
+                  info.el.setAttribute('title', `${info.event.title}\n${info.event.extendedProps.estado}`);
+                }}
+              />
+            </div>
+            {loading && (
+              <p className="mt-4 text-sm text-slate-400">Cargando agenda...</p>
+            )}
+            <div className="mt-6 overflow-hidden rounded-2xl border border-slate-800/80">
+              <table className="w-full text-left text-sm text-slate-300">
+                <thead className="bg-slate-900/80 text-xs uppercase tracking-widest text-slate-400">
+                  <tr>
+                    <th className="px-4 py-3">Cliente</th>
+                    <th className="px-4 py-3">Barbero</th>
+                    <th className="px-4 py-3">Servicio</th>
+                    <th className="px-4 py-3">Fecha</th>
+                    <th className="px-4 py-3">Hora</th>
+                    <th className="px-4 py-3">Estado</th>
+                    <th className="px-4 py-3">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/70">
+                  {citas.length === 0 ? (
                     <tr>
-                      <th className="px-4 py-3">Cliente</th>
-                      <th className="px-4 py-3">Barbero</th>
-                      <th className="px-4 py-3">Servicio</th>
-                      <th className="px-4 py-3">Fecha</th>
-                      <th className="px-4 py-3">Hora</th>
-                      <th className="px-4 py-3">Estado</th>
-                      <th className="px-4 py-3">Acciones</th>
+                      <td colSpan={7} className="px-4 py-6 text-center text-slate-500">
+                        No hay citas registradas para este filtro.
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800/70">
-                    {citas.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className="px-4 py-6 text-center text-slate-500">
-                          No hay citas registradas para este filtro.
+                  ) : (
+                    citas.map((cita) => (
+                      <tr key={cita.id} className="hover:bg-slate-800/30">
+                        <td className="px-4 py-3 text-white">{cita.cliente}</td>
+                        <td className="px-4 py-3 text-slate-300">{cita.barbero.nombre}</td>
+                        <td className="px-4 py-3 text-slate-300">{cita.servicio.nombre}</td>
+                        <td className="px-4 py-3 text-slate-300">{cita.fecha.split('T')[0]}</td>
+                        <td className="px-4 py-3 text-slate-300">{cita.hora}</td>
+                        <td className="px-4 py-3">
+                          <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-200">
+                            {cita.estado}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-xs">
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleReschedule(cita)}
+                              className="rounded-full border border-slate-700/70 px-3 py-1 text-slate-300 transition hover:border-emerald-400/60 hover:text-emerald-200"
+                            >
+                              Reprogramar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleCancel(cita.id)}
+                              className="rounded-full border border-rose-500/40 px-3 py-1 text-rose-300 transition hover:border-rose-400 hover:text-rose-200"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
                         </td>
                       </tr>
-                    ) : (
-                      citas.map((cita) => (
-                        <tr key={cita.id} className="hover:bg-slate-800/30">
-                          <td className="px-4 py-3 text-white">{cita.cliente}</td>
-                          <td className="px-4 py-3 text-slate-300">{cita.barbero.nombre}</td>
-                          <td className="px-4 py-3 text-slate-300">{cita.servicio.nombre}</td>
-                          <td className="px-4 py-3 text-slate-300">{cita.fecha.split('T')[0]}</td>
-                          <td className="px-4 py-3 text-slate-300">{cita.hora}</td>
-                          <td className="px-4 py-3">
-                            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-200">
-                              {cita.estado}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-xs">
-                            <div className="flex flex-wrap gap-2">
-                              <button
-                                type="button"
-                                onClick={() => handleReschedule(cita)}
-                                className="rounded-full border border-slate-700/70 px-3 py-1 text-slate-300 transition hover:border-emerald-400/60 hover:text-emerald-200"
-                              >
-                                Reprogramar
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleCancel(cita.id)}
-                                className="rounded-full border border-rose-500/40 px-3 py-1 text-rose-300 transition hover:border-rose-400 hover:text-rose-200"
-                              >
-                                Cancelar
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       )}
 
+      {/* Usuarios Tab */}
       {isAdmin && activeTab === 'usuarios' && (
         <div className="space-y-6">
           <div className="rounded-3xl border border-slate-800/80 bg-slate-900/80 p-6">
@@ -731,6 +736,7 @@ const AdminPage = () => {
         </div>
       )}
 
+      {/* Negocio Tab */}
       {isAdmin && activeTab === 'negocio' && (
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-3xl border border-slate-800/80 bg-slate-900/80 p-6">
