@@ -22,11 +22,9 @@ thead .fc .fc-theme-emerald .fc-scrollgrid-section-sticky {
 
 .fc-theme-emerald {
   --fc-page-bg-color: #0f172a;
-  
   --fc-neutral-bg-color: rgba(123, 255, 0, 0.6);
   --fc-border-color: rgba(148, 163, 184, 0.12);
   --fc-button-text-color: #0f172a;
-  
   --fc-button-bg-color: #34d399;
   --fc-button-border-color: transparent;
   --fc-button-hover-bg-color: #22c55e;
@@ -42,28 +40,17 @@ thead .fc .fc-theme-emerald .fc-scrollgrid-section-sticky {
   box-shadow: 0 25px 60px rgba(15, 118, 110, 0.25);
 }
 
-.fc-theme-octane {
-  --fc-bg-color: #0E0E14;
-  --fc-button-bg-color: #7A3FFF;
-  --fc-button-color: #ffffff;
-  --fc-event-bg-color: #00B37E;
-  --fc-event-border-color: #00B37E;
-  --fc-day-header-font-weight: 600;
-  --fc-slot-label-font-size: 0.85rem;
-  --fc-scrollgrid-section-sticky: trasparent;
-}
-
 .fc .fc-scrollgrid-section-sticky > * {
   background-color:  rgb(15 23 42 / 0.8) !important;
   color: rgb(148 163 184 / var(--tw-text-opacity, 1));
   font-size: 14px;
-  
+
 }
 
 .fc-theme-standard td, .fc-theme-standard th {
   border-color: rgba(148, 163, 184, 0.12);
-  
-  
+
+
 }
 
 .fc-timegrid-event .fc-event-main {
@@ -90,6 +77,8 @@ thead .fc .fc-theme-emerald .fc-scrollgrid-section-sticky {
   overflow: hidden;
   border: 1px solid rgba(148, 163, 184, 0.12);
 }
+
+
 
 .fc-theme-emerald .fc-view-harness {
   padding: 1rem;

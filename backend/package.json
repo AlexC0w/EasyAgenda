@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/initPrisma.js",
+    "prestart": "node scripts/initPrisma.js",
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
+    "prisma:init": "node scripts/initPrisma.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy"
   },

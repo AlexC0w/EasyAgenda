@@ -140,6 +140,8 @@ Si `WHATSAPP_API_URL` o `WHATSAPP_API_KEY` no están configurados, se realizará
 | `npm run prisma:generate --prefix backend` | Genera el cliente Prisma. |
 | `npm run prisma:migrate --prefix backend` | Ejecuta migraciones en la base de datos configurada. |
 
+> ¿Ves un error `PrismaClientKnownRequestError` con el código `P2021` (tabla `User` no existe)? Asegúrate de ejecutar `npm run prisma:migrate --prefix backend` para aplicar las migraciones pendientes antes de iniciar sesión.
+
 ## 🔒 Consideraciones de producción
 
 - Configura un servicio real para WhatsApp y actualiza `sendWhatsApp.js` según el proveedor.
