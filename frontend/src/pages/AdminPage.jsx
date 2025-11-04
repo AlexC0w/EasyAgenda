@@ -202,18 +202,26 @@ const AdminPage = () => {
 
   const events = useMemo(
     () =>
-      citas.map((cita) => ({
-        id: String(cita.id),
-        title: `${cita.cliente} · ${cita.servicio.nombre}`,
-        start: toDateTime(cita.fecha, cita.hora),
-        extendedProps: {
-          telefono: cita.telefono,
-          estado: cita.estado,
-          barbero: cita.barbero.nombre,
-          servicio: cita.servicio.nombre,
-          precio: cita.servicio.precio,
-        },
-      })),
+      citas.map((cita) => {
+        const start = toDateTime(cita.fecha, cita.hora);
+        const durationMinutes = Number(cita.servicio?.duracion ?? cita.barbero?.duracion_cita ?? 60);
+        const end = new Date(start.getTime() + durationMinutes * 60_000);
+
+        return {
+          id: String(cita.id),
+          title: `${cita.cliente} · ${cita.servicio.nombre}`,
+          start,
+          end,
+          extendedProps: {
+            telefono: cita.telefono,
+            estado: cita.estado,
+            barbero: cita.barbero.nombre,
+            servicio: cita.servicio.nombre,
+            precio: cita.servicio.precio,
+            duracion: durationMinutes,
+          },
+        };
+      }),
     [citas]
   );
 
