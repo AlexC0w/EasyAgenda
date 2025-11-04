@@ -8,11 +8,11 @@ VALUES
   ('Octavio Cortez', '09:00', '17:00', '["monday","tuesday","wednesday","thursday","friday"]', 30, 2),
   ('Laura Fade', '10:00', '18:00', '["tuesday","wednesday","thursday","friday","saturday"]', 45, NULL);
 
-INSERT INTO Servicio (nombre, duracion, descripcion, precio)
+INSERT INTO Servicio (nombre, duracion, precio)
 VALUES
-  ('Corte clásico', 30, 'Corte tradicional con acabado pulcro.', 15.00),
-  ('Afeitado premium', 45, 'Tratamiento completo con toalla caliente.', 25.00),
-  ('Diseño de barba', 30, 'Perfilado detallado y definición de contornos.', 20.00);
+  ('Corte clásico', 30, 15.00),
+  ('Afeitado premium', 45, 25.00),
+  ('Diseño de barba', 30, 20.00);
 
 INSERT INTO BusinessSetting (`key`, `value`)
 VALUES

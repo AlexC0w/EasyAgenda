@@ -59,7 +59,6 @@ const createInitialUserForm = () => ({
 
 const createInitialServiceForm = () => ({
   nombre: '',
-  descripcion: '',
   duracion: 30,
   precio: '',
 });
@@ -467,7 +466,6 @@ const AdminPage = () => {
 
       const payload = {
         nombre: serviceForm.nombre.trim(),
-        descripcion: serviceForm.descripcion.trim(),
         duracion: duration,
         precio: price,
       };
@@ -496,7 +494,6 @@ const AdminPage = () => {
     setEditingServiceId(service.id);
     setServiceForm({
       nombre: service.nombre,
-      descripcion: service.descripcion || '',
       duracion: service.duracion,
       precio: typeof service.precio === 'string' ? service.precio : String(service.precio),
     });
@@ -1232,7 +1229,7 @@ const AdminPage = () => {
               <Scissors className="h-5 w-5 text-emerald-400" /> {editingServiceId ? 'Editar servicio' : 'Nuevo servicio'}
             </h3>
             <p className="mt-1 text-sm text-slate-400">
-              Administra las descripciones, precios y duraciones para mantener alineada la oferta de la barbería.
+              Administra los servicios disponibles manteniendo actualizados sus precios y duraciones.
             </p>
             <form onSubmit={handleSubmitService} className="mt-6 space-y-4">
               <div className="flex flex-col gap-2">
@@ -1243,17 +1240,6 @@ const AdminPage = () => {
                   onChange={handleServiceFormChange}
                   className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
                   placeholder="Corte premium"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Descripción</label>
-                <textarea
-                  name="descripcion"
-                  value={serviceForm.descripcion}
-                  onChange={handleServiceFormChange}
-                  rows={3}
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
-                  placeholder="Detalle la experiencia del servicio"
                 />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
@@ -1316,14 +1302,13 @@ const AdminPage = () => {
                     <th className="px-4 py-3">Servicio</th>
                     <th className="px-4 py-3">Duración</th>
                     <th className="px-4 py-3">Precio</th>
-                    <th className="px-4 py-3">Descripción</th>
                     <th className="px-4 py-3">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/70">
                   {services.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-6 text-center text-slate-500">
+                      <td colSpan={4} className="px-4 py-6 text-center text-slate-500">
                         No hay servicios registrados.
                       </td>
                     </tr>
@@ -1333,7 +1318,6 @@ const AdminPage = () => {
                         <td className="px-4 py-3 text-white">{service.nombre}</td>
                         <td className="px-4 py-3 text-slate-300">{service.duracion} min</td>
                         <td className="px-4 py-3 text-emerald-300">{formatCurrency(service.precio)}</td>
-                        <td className="px-4 py-3 text-slate-400">{service.descripcion || '—'}</td>
                         <td className="px-4 py-3 text-xs">
                           <div className="flex flex-wrap gap-2">
                             <button

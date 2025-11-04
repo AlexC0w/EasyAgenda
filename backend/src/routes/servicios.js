@@ -7,7 +7,6 @@ const router = Router();
 const serializeService = (service) => ({
   id: service.id,
   nombre: service.nombre,
-  descripcion: service.descripcion,
   duracion: service.duracion,
   precio: service.precio?.toString?.() ?? String(service.precio),
   createdAt: service.createdAt,
@@ -16,7 +15,6 @@ const serializeService = (service) => ({
 
 const parseServicePayload = (body) => {
   const nombre = body.nombre?.trim();
-  const descripcion = body.descripcion?.trim() ?? '';
   const duracion = Number(body.duracion);
   const precioValue = body.precio;
   const precio = typeof precioValue === 'number' ? precioValue : Number.parseFloat(precioValue);
@@ -33,7 +31,6 @@ const parseServicePayload = (body) => {
 
   return {
     nombre,
-    descripcion,
     duracion: Math.round(duracion),
     precio: precio.toFixed(2),
   };

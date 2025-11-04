@@ -356,9 +356,6 @@ const BookingPage = () => {
                         <span className="text-emerald-300 font-semibold">{formatCurrency(servicio.precio)}</span>
                       </div>
                       <p className="mt-2 text-sm text-slate-400">{servicio.duracion} minutos</p>
-                      {servicio.descripcion && (
-                        <p className="mt-1 text-xs text-slate-500">{servicio.descripcion}</p>
-                      )}
                     </button>
                   );
                 })}
