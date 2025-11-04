@@ -1,0 +1,30 @@
+{
+  "name": "agenda-octane-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/initPrisma.js",
+    "prestart": "node scripts/initPrisma.js",
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "prisma:init": "node scripts/initPrisma.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate deploy"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.9.1",
+    "axios": "^1.6.8",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0",
+    "prisma": "^5.9.1"
+  }
+}
