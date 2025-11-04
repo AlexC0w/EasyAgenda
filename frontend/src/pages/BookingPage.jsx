@@ -195,6 +195,25 @@ const BookingPage = () => {
     setSelectedTime('');
   };
 
+  const todayIso = useMemo(() => toISODate(new Date()), []);
+
+  const visibleAvailability = useMemo(() => {
+    if (!availability.length) return availability;
+    if (selectedDate !== todayIso) return availability;
+
+    const now = new Date();
+    return availability.filter((slot) => {
+      const slotDate = new Date(`${selectedDate}T${slot}:00`);
+      return slotDate > now;
+    });
+  }, [availability, selectedDate, todayIso]);
+
+  useEffect(() => {
+    if (!selectedTime) return;
+    if (visibleAvailability.includes(selectedTime)) return;
+    setSelectedTime('');
+  }, [visibleAvailability, selectedTime]);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!selectedBarbero || !selectedServicio || !selectedDate || !selectedTime) {
@@ -463,13 +482,13 @@ const BookingPage = () => {
                 </p>
                 <div className="mt-4 grid grid-cols-3 gap-3">
                   {loadingSlots && <p className="col-span-3 text-center text-sm text-slate-400">Cargando horarios…</p>}
-                  {!loadingSlots && availability.length === 0 && (
+                  {!loadingSlots && visibleAvailability.length === 0 && (
                     <p className="col-span-3 text-center text-sm text-slate-500">
-                      No hay horarios disponibles para este día.
+                      No hay horarios disponibles para el resto del día.
                     </p>
                   )}
                   {!loadingSlots &&
-                    availability.map((slot) => (
+                    visibleAvailability.map((slot) => (
                       <button
                         key={slot}
                         type="button"
