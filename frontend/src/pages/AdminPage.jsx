@@ -17,6 +17,12 @@ import {
   EyeOff,
   Phone,
   Building,
+  Scissors,
+  ListChecks,
+  Edit3,
+  Trash2,
+  Save,
+  XCircle,
 } from 'lucide-react';
 import api from '../api/client.js';
 import SelectField from '../components/SelectField.jsx';
@@ -25,12 +31,48 @@ import { useAuth } from '../context/AuthContext.jsx';
 
 const toDateTime = (fecha, hora) => new Date(`${fecha.split('T')[0]}T${hora}:00`);
 
-const initialUserForm = {
+const dayOptions = [
+  { value: 'monday', label: 'Lunes' },
+  { value: 'tuesday', label: 'Martes' },
+  { value: 'wednesday', label: 'Miércoles' },
+  { value: 'thursday', label: 'Jueves' },
+  { value: 'friday', label: 'Viernes' },
+  { value: 'saturday', label: 'Sábado' },
+  { value: 'sunday', label: 'Domingo' },
+];
+
+const createEmptyBarberProfile = () => ({
+  nombre: '',
+  horarioInicio: '09:00',
+  horarioFin: '18:00',
+  duracionCita: 30,
+  diasLaborales: [],
+});
+
+const createInitialUserForm = () => ({
   username: '',
   password: '',
   telefono: '',
   role: 'BARBER',
-};
+  barberoProfile: createEmptyBarberProfile(),
+});
+
+const createInitialServiceForm = () => ({
+  nombre: '',
+  duracion: 30,
+  precio: '',
+});
+
+const toEditableBarberProfile = (profile) => ({
+  nombre: profile?.nombre ?? '',
+  horarioInicio: profile?.horario_inicio ?? '09:00',
+  horarioFin: profile?.horario_fin ?? '18:00',
+  duracionCita: profile?.duracion_cita ?? 30,
+  diasLaborales: Array.isArray(profile?.dias_laborales) ? profile.dias_laborales : [],
+});
+
+const formatCurrency = (value) =>
+  new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(Number(value));
 
 const defaultBusiness = {
   businessName: '',
@@ -51,9 +93,18 @@ const AdminPage = () => {
   const [loading, setLoading] = useState(false);
 
   const [users, setUsers] = useState([]);
-  const [userForm, setUserForm] = useState(initialUserForm);
+  const [userForm, setUserForm] = useState(() => createInitialUserForm());
   const [savingUser, setSavingUser] = useState(false);
   const [showPasswords, setShowPasswords] = useState(false);
+
+  const [selectedBarberUserId, setSelectedBarberUserId] = useState(null);
+  const [barberProfileForm, setBarberProfileForm] = useState(() => createEmptyBarberProfile());
+  const [savingBarberProfile, setSavingBarberProfile] = useState(false);
+
+  const [services, setServices] = useState([]);
+  const [serviceForm, setServiceForm] = useState(() => createInitialServiceForm());
+  const [editingServiceId, setEditingServiceId] = useState(null);
+  const [savingService, setSavingService] = useState(false);
 
   const [business, setBusiness] = useState(defaultBusiness);
   const [savingBusiness, setSavingBusiness] = useState(false);
@@ -121,6 +172,18 @@ const AdminPage = () => {
     }
   };
 
+  const loadServicios = async () => {
+    if (!isAdmin) return;
+    try {
+      const { data } = await api.get('/servicios');
+      setServices(data);
+    } catch (error) {
+      console.error(error);
+      const message = error.response?.data?.message || 'No se pudieron cargar los servicios.';
+      setStatus({ state: 'error', message });
+    }
+  };
+
   useEffect(() => {
     loadBarberos();
   }, []);
@@ -133,28 +196,32 @@ const AdminPage = () => {
     if (isAdmin) {
       loadUsers();
       loadBusiness();
+      loadServicios();
     }
   }, [isAdmin]);
 
   const events = useMemo(
     () =>
-      citas.map((cita) => ({
-        id: String(cita.id),
-        title: `${cita.cliente} · ${cita.servicio.nombre}`,
-        start: toDateTime(cita.fecha, cita.hora),
-        extendedProps: {
-          telefono: cita.telefono,
-          estado: cita.estado,
-          barbero: cita.barbero.nombre,
-          servicio: cita.servicio.nombre,
-          precio: cita.servicio.precio,
-        },
-        
-        className:
-          cita.estado === 'cancelada'
-            ? 'bg-rose-500/30 border border-rose-500/50'
-            : 'bg-emerald-500/30 border border-emerald-500/50',
-      })),
+      citas.map((cita) => {
+        const start = toDateTime(cita.fecha, cita.hora);
+        const durationMinutes = Number(cita.servicio?.duracion ?? cita.barbero?.duracion_cita ?? 60);
+        const end = new Date(start.getTime() + durationMinutes * 60_000);
+
+        return {
+          id: String(cita.id),
+          title: `${cita.cliente} · ${cita.servicio.nombre}`,
+          start,
+          end,
+          extendedProps: {
+            telefono: cita.telefono,
+            estado: cita.estado,
+            barbero: cita.barbero.nombre,
+            servicio: cita.servicio.nombre,
+            precio: cita.servicio.precio,
+            duracion: durationMinutes,
+          },
+        };
+      }),
     [citas]
   );
 
@@ -278,16 +345,242 @@ const AdminPage = () => {
 
   const handleUserFormChange = (event) => {
     const { name, value } = event.target;
-    setUserForm((prev) => ({ ...prev, [name]: value }));
+    setUserForm((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === 'role' && value !== 'BARBER') {
+        next.barberoProfile = createEmptyBarberProfile();
+      }
+      return next;
+    });
+  };
+
+  const handleUserBarberFieldChange = (field, value) => {
+    setUserForm((prev) => ({
+      ...prev,
+      barberoProfile: {
+        ...prev.barberoProfile,
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleUserBarberDayToggle = (day) => {
+    setUserForm((prev) => {
+      const alreadySelected = prev.barberoProfile.diasLaborales.includes(day);
+      const diasLaborales = alreadySelected
+        ? prev.barberoProfile.diasLaborales.filter((item) => item !== day)
+        : [...prev.barberoProfile.diasLaborales, day];
+      return {
+        ...prev,
+        barberoProfile: {
+          ...prev.barberoProfile,
+          diasLaborales,
+        },
+      };
+    });
+  };
+
+  const openBarberProfileEditor = (userItem) => {
+    setSelectedBarberUserId(userItem.id);
+    setBarberProfileForm(toEditableBarberProfile(userItem.barberoProfile));
+  };
+
+  const closeBarberProfileEditor = () => {
+    setSelectedBarberUserId(null);
+    setBarberProfileForm(createEmptyBarberProfile());
+  };
+
+  const handleBarberProfileFormChange = (field, value) => {
+    setBarberProfileForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleBarberProfileDayToggle = (day) => {
+    setBarberProfileForm((prev) => {
+      const alreadySelected = prev.diasLaborales.includes(day);
+      return {
+        ...prev,
+        diasLaborales: alreadySelected
+          ? prev.diasLaborales.filter((item) => item !== day)
+          : [...prev.diasLaborales, day],
+      };
+    });
+  };
+
+  const handleSaveBarberProfile = async (event) => {
+    event.preventDefault();
+    if (!selectedBarberUserId) return;
+
+    if (!barberProfileForm.nombre.trim()) {
+      setStatus({ state: 'error', message: 'El nombre del barbero es obligatorio.' });
+      return;
+    }
+    if (!barberProfileForm.diasLaborales.length) {
+      setStatus({ state: 'error', message: 'Selecciona al menos un día laboral.' });
+      return;
+    }
+    const duration = Number(barberProfileForm.duracionCita);
+    if (!Number.isFinite(duration) || duration <= 0) {
+      setStatus({ state: 'error', message: 'Define una duración base válida.' });
+      return;
+    }
+    if (!barberProfileForm.horarioInicio || !barberProfileForm.horarioFin) {
+      setStatus({ state: 'error', message: 'Selecciona un horario de inicio y fin.' });
+      return;
+    }
+
+    setSavingBarberProfile(true);
+    try {
+      const payload = {
+        barberoProfile: {
+          nombre: barberProfileForm.nombre.trim(),
+          horarioInicio: barberProfileForm.horarioInicio,
+          horarioFin: barberProfileForm.horarioFin,
+          duracionCita: duration,
+          diasLaborales: barberProfileForm.diasLaborales,
+        },
+      };
+      const { data } = await api.patch(`/users/${selectedBarberUserId}`, payload);
+      setUsers((prev) => prev.map((item) => (item.id === data.id ? data : item)));
+      setBarberProfileForm(toEditableBarberProfile(data.barberoProfile));
+      setStatus({ state: 'success', message: 'Perfil de barbero actualizado correctamente.' });
+      await loadBarberos();
+    } catch (error) {
+      console.error(error);
+      const message = error.response?.data?.message || 'No se pudo guardar el perfil del barbero.';
+      setStatus({ state: 'error', message });
+    } finally {
+      setSavingBarberProfile(false);
+    }
+  };
+
+  const handleServiceFormChange = (event) => {
+    const { name, value } = event.target;
+    setServiceForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmitService = async (event) => {
+    event.preventDefault();
+    setSavingService(true);
+    try {
+      const duration = Number(serviceForm.duracion);
+      const price = Number.parseFloat(serviceForm.precio);
+      if (!serviceForm.nombre.trim() || !Number.isFinite(duration) || duration <= 0 || !Number.isFinite(price)) {
+        setStatus({ state: 'error', message: 'Verifica el nombre, duración y precio del servicio.' });
+        setSavingService(false);
+        return;
+      }
+
+      const payload = {
+        nombre: serviceForm.nombre.trim(),
+        duracion: duration,
+        precio: price,
+      };
+
+      if (editingServiceId) {
+        const { data } = await api.put(`/servicios/${editingServiceId}`, payload);
+        setServices((prev) => prev.map((item) => (item.id === data.id ? data : item)));
+        setStatus({ state: 'success', message: 'Servicio actualizado correctamente.' });
+      } else {
+        const { data } = await api.post('/servicios', payload);
+        setServices((prev) => [data, ...prev]);
+        setStatus({ state: 'success', message: 'Servicio creado correctamente.' });
+      }
+      setServiceForm(createInitialServiceForm());
+      setEditingServiceId(null);
+    } catch (error) {
+      console.error(error);
+      const message = error.response?.data?.message || 'No se pudo guardar el servicio.';
+      setStatus({ state: 'error', message });
+    } finally {
+      setSavingService(false);
+    }
+  };
+
+  const handleEditService = (service) => {
+    setEditingServiceId(service.id);
+    setServiceForm({
+      nombre: service.nombre,
+      duracion: service.duracion,
+      precio: typeof service.precio === 'string' ? service.precio : String(service.precio),
+    });
+  };
+
+  const handleCancelServiceEdit = () => {
+    setEditingServiceId(null);
+    setServiceForm(createInitialServiceForm());
+  };
+
+  const handleDeleteService = async (service) => {
+    const confirmDelete = window.confirm(`¿Eliminar el servicio ${service.nombre}?`);
+    if (!confirmDelete) return;
+    try {
+      await api.delete(`/servicios/${service.id}`);
+      setServices((prev) => prev.filter((item) => item.id !== service.id));
+      setStatus({ state: 'success', message: 'Servicio eliminado.' });
+    } catch (error) {
+      console.error(error);
+      const message = error.response?.data?.message || 'No se pudo eliminar el servicio.';
+      setStatus({ state: 'error', message });
+    }
   };
 
   const handleCreateUser = async (event) => {
     event.preventDefault();
     setSavingUser(true);
     try {
-      const { data } = await api.post('/users', userForm);
+      const payload = {
+        username: userForm.username.trim(),
+        password: userForm.password,
+        telefono: userForm.telefono,
+        role: userForm.role,
+      };
+
+      if (!payload.username || !payload.password) {
+        setStatus({ state: 'error', message: 'Usuario y contraseña son requeridos.' });
+        setSavingUser(false);
+        return;
+      }
+
+      if (payload.role === 'BARBER') {
+        const { nombre, horarioInicio, horarioFin, duracionCita, diasLaborales } = userForm.barberoProfile;
+        payload.barberoProfile = {
+          nombre: nombre.trim(),
+          horarioInicio,
+          horarioFin,
+          duracionCita: Number(duracionCita),
+          diasLaborales,
+        };
+        if (!payload.barberoProfile.nombre) {
+          setStatus({ state: 'error', message: 'Debes indicar el nombre del barbero.' });
+          setSavingUser(false);
+          return;
+        }
+        if (!payload.barberoProfile.diasLaborales.length) {
+          setStatus({ state: 'error', message: 'Selecciona los días laborales del barbero.' });
+          setSavingUser(false);
+          return;
+        }
+        if (!payload.barberoProfile.horarioInicio || !payload.barberoProfile.horarioFin) {
+          setStatus({ state: 'error', message: 'Completa el horario de servicio del barbero.' });
+          setSavingUser(false);
+          return;
+        }
+        if (!Number.isFinite(payload.barberoProfile.duracionCita) || payload.barberoProfile.duracionCita <= 0) {
+          setStatus({ state: 'error', message: 'Define una duración base válida.' });
+          setSavingUser(false);
+          return;
+        }
+      }
+
+      const { data } = await api.post('/users', payload);
       setUsers((prev) => [data, ...prev]);
-      setUserForm(initialUserForm);
+      setUserForm(createInitialUserForm());
+      if (payload.role === 'BARBER') {
+        await loadBarberos();
+      }
       setStatus({ state: 'success', message: 'Usuario creado correctamente.' });
     } catch (error) {
       console.error(error);
@@ -304,6 +597,9 @@ const AdminPage = () => {
     try {
       await api.delete(`/users/${id}`);
       setUsers((prev) => prev.filter((item) => item.id !== id));
+      if (selectedBarberUserId === id) {
+        closeBarberProfileEditor();
+      }
       setStatus({ state: 'success', message: 'Usuario eliminado.' });
     } catch (error) {
       console.error(error);
@@ -367,7 +663,6 @@ const AdminPage = () => {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 shadow-xl shadow-emerald-500/10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
@@ -390,9 +685,10 @@ const AdminPage = () => {
         </div>
         {isAdmin && (
           <div className="mt-6 flex flex-wrap gap-3">
-            {[
+            {[ 
               { id: 'agenda', label: 'Agenda', icon: <Calendar className="h-4 w-4" /> },
               { id: 'usuarios', label: 'Usuarios', icon: <Users className="h-4 w-4" /> },
+              { id: 'servicios', label: 'Servicios', icon: <Scissors className="h-4 w-4" /> },
               { id: 'negocio', label: 'Negocio', icon: <Settings className="h-4 w-4" /> },
             ].map((tab) => (
               <button
@@ -415,10 +711,8 @@ const AdminPage = () => {
 
       {status.state !== 'idle' && <Alert type={status.state}>{status.message}</Alert>}
 
-      {/* Agenda Tab */}
       {(activeTab === 'agenda' || !isAdmin) && (
         <div className="space-y-8">
-          {/* Metrics */}
           <div className="grid gap-4 md:grid-cols-4">
             <div className="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5">
               <div className="flex items-center justify-between text-sm text-slate-400">
@@ -452,146 +746,144 @@ const AdminPage = () => {
             </div>
           </div>
 
-          {/* Filtros y Acciones rápidas en una sola fila */}
-          <div className="flex flex-col gap-6 md:flex-row md:gap-6">
-            {/* Filtro */}
-            <div className="flex-1 rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold uppercase tracking-widest text-slate-300">Filtro</h3>
-                <RefreshCcw
-                  className="h-4 w-4 cursor-pointer text-slate-500 transition hover:text-emerald-300"
-                  onClick={() => loadCitas(isAdmin ? selectedBarbero : '')}
-                />
-              </div>
-              {isAdmin ? (
-                <div className="mt-4 space-y-4">
-                  <SelectField
-                    label="Barbero"
-                    options={barberoOptions}
-                    value={selectedBarbero}
-                    onChange={setSelectedBarbero}
-                    placeholder="Selecciona un barbero"
+          <div className="grid gap-6 lg:grid-cols-[320px,1fr]">
+            <div className="space-y-6">
+              <div className="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold uppercase tracking-widest text-slate-300">Filtro</h3>
+                  <RefreshCcw
+                    className="h-4 w-4 cursor-pointer text-slate-500 transition hover:text-emerald-300"
+                    onClick={() => loadCitas(isAdmin ? selectedBarbero : '')}
                   />
                 </div>
-              ) : (
-                <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm text-emerald-200">
-                  <p className="font-semibold">Tu agenda</p>
-                  <p className="text-xs text-emerald-200/70">
-                    Solo puedes visualizar y administrar las citas asignadas a tu perfil.
-                  </p>
+                {isAdmin ? (
+                  <div className="mt-4 space-y-4">
+                    <SelectField
+                      label="Barbero"
+                      options={barberoOptions}
+                      value={selectedBarbero}
+                      onChange={setSelectedBarbero}
+                      placeholder="Selecciona un barbero"
+                    />
+                  </div>
+                ) : (
+                  <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm text-emerald-200">
+                    <p className="font-semibold">Tu agenda</p>
+                    <p className="text-xs text-emerald-200/70">
+                      Solo puedes visualizar y administrar las citas asignadas a tu perfil.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5">
+                <h3 className="text-sm font-semibold uppercase tracking-widest text-slate-300">Acciones rápidas</h3>
+                <div className="mt-4 space-y-3 text-sm text-slate-400">
+                  <button
+                    type="button"
+                    onClick={() => loadCitas(isAdmin ? selectedBarbero : '')}
+                    className="w-full rounded-xl border border-slate-700/70 bg-slate-900 px-4 py-3 text-left text-slate-200 transition hover:border-emerald-400/60 hover:text-emerald-200"
+                  >
+                    Actualizar agenda
+                  </button>
                 </div>
-              )}
-            </div>
-            {/* Acciones rápidas */}
-            <div className="flex-1 rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-widest text-slate-300">Acciones rápidas</h3>
-              <div className="mt-4 space-y-3 text-sm text-slate-400">
-                <button
-                  type="button"
-                  onClick={() => loadCitas(isAdmin ? selectedBarbero : '')}
-                  className="w-full rounded-xl border border-slate-700/70 bg-slate-900 px-4 py-3 text-left text-slate-200 transition hover:border-emerald-400/60 hover:text-emerald-200"
-                >
-                  Actualizar agenda
-                </button>
               </div>
             </div>
-          </div>
 
-          {/* Agenda semanal y tabla de citas debajo, ocupando todo el ancho */}
-          <div className="rounded-3xl border border-slate-800/80 bg-slate-900/80 p-6 mt-2">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-white">Agenda semanal</h3>
-              <span className="text-xs uppercase tracking-[0.3em] text-emerald-300/70">FullCalendar</span>
-            </div>
-            <div className="mt-4 overflow-hidden rounded-2xl border border-slate-800/60 bg-slate-950/40 p-2">
-              <FullCalendar
-                height="auto"
-                locale={esLocale}
-                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                initialView="timeGridWeek"
-                slotMinTime="08:00:00"
-                slotMaxTime="20:00:00"
-                headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
-                events={events}
-                eventContent={renderEventContent}
-                eventClassNames={eventClassNames}
-                editable
-                droppable
-                eventDrop={handleEventDrop}
-                dayHeaderContent={dayHeaderContent}
-                slotLabelContent={slotLabelContent}
-                slotEventOverlap={false}
-                nowIndicator
-                eventDidMount={(info) => {
-                  info.el.setAttribute('title', `${info.event.title}\n${info.event.extendedProps.estado}`);
-                }}
-              />
-            </div>
-            {loading && (
-              <p className="mt-4 text-sm text-slate-400">Cargando agenda...</p>
-            )}
-            <div className="mt-6 overflow-hidden rounded-2xl border border-slate-800/80">
-              <table className="w-full text-left text-sm text-slate-300">
-                <thead className="bg-slate-900/80 text-xs uppercase tracking-widest text-slate-400">
-                  <tr>
-                    <th className="px-4 py-3">Cliente</th>
-                    <th className="px-4 py-3">Barbero</th>
-                    <th className="px-4 py-3">Servicio</th>
-                    <th className="px-4 py-3">Fecha</th>
-                    <th className="px-4 py-3">Hora</th>
-                    <th className="px-4 py-3">Estado</th>
-                    <th className="px-4 py-3">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/70">
-                  {citas.length === 0 ? (
+            <div className="rounded-3xl border border-slate-800/80 bg-slate-900/80 p-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-white">Agenda semanal</h3>
+                <span className="text-xs uppercase tracking-[0.3em] text-emerald-300/70">FullCalendar</span>
+              </div>
+              <div className="mt-4 overflow-hidden rounded-2xl border border-slate-800/60 bg-slate-950/40 p-2">
+                <FullCalendar
+                  height="auto"
+                  locale={esLocale}
+                  plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                  initialView="timeGridWeek"
+                  slotMinTime="08:00:00"
+                  slotMaxTime="20:00:00"
+                  headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
+                  events={events}
+                  eventContent={renderEventContent}
+                  eventClassNames={eventClassNames}
+                  editable
+                  droppable
+                  eventDrop={handleEventDrop}
+                  dayHeaderContent={dayHeaderContent}
+                  slotLabelContent={slotLabelContent}
+                  slotEventOverlap={false}
+                  nowIndicator
+                  eventDidMount={(info) => {
+                    info.el.setAttribute('title', `${info.event.title}\n${info.event.extendedProps.estado}`);
+                  }}
+                />
+              </div>
+              {loading && (
+                <p className="mt-4 text-sm text-slate-400">Cargando agenda...</p>
+              )}
+              <div className="mt-6 overflow-hidden rounded-2xl border border-slate-800/80">
+                <table className="w-full text-left text-sm text-slate-300">
+                  <thead className="bg-slate-900/80 text-xs uppercase tracking-widest text-slate-400">
                     <tr>
-                      <td colSpan={7} className="px-4 py-6 text-center text-slate-500">
-                        No hay citas registradas para este filtro.
-                      </td>
+                      <th className="px-4 py-3">Cliente</th>
+                      <th className="px-4 py-3">Barbero</th>
+                      <th className="px-4 py-3">Servicio</th>
+                      <th className="px-4 py-3">Fecha</th>
+                      <th className="px-4 py-3">Hora</th>
+                      <th className="px-4 py-3">Estado</th>
+                      <th className="px-4 py-3">Acciones</th>
                     </tr>
-                  ) : (
-                    citas.map((cita) => (
-                      <tr key={cita.id} className="hover:bg-slate-800/30">
-                        <td className="px-4 py-3 text-white">{cita.cliente}</td>
-                        <td className="px-4 py-3 text-slate-300">{cita.barbero.nombre}</td>
-                        <td className="px-4 py-3 text-slate-300">{cita.servicio.nombre}</td>
-                        <td className="px-4 py-3 text-slate-300">{cita.fecha.split('T')[0]}</td>
-                        <td className="px-4 py-3 text-slate-300">{cita.hora}</td>
-                        <td className="px-4 py-3">
-                          <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-200">
-                            {cita.estado}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-xs">
-                          <div className="flex flex-wrap gap-2">
-                            <button
-                              type="button"
-                              onClick={() => handleReschedule(cita)}
-                              className="rounded-full border border-slate-700/70 px-3 py-1 text-slate-300 transition hover:border-emerald-400/60 hover:text-emerald-200"
-                            >
-                              Reprogramar
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleCancel(cita.id)}
-                              className="rounded-full border border-rose-500/40 px-3 py-1 text-rose-300 transition hover:border-rose-400 hover:text-rose-200"
-                            >
-                              Cancelar
-                            </button>
-                          </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/70">
+                    {citas.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-4 py-6 text-center text-slate-500">
+                          No hay citas registradas para este filtro.
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      citas.map((cita) => (
+                        <tr key={cita.id} className="hover:bg-slate-800/30">
+                          <td className="px-4 py-3 text-white">{cita.cliente}</td>
+                          <td className="px-4 py-3 text-slate-300">{cita.barbero.nombre}</td>
+                          <td className="px-4 py-3 text-slate-300">{cita.servicio.nombre}</td>
+                          <td className="px-4 py-3 text-slate-300">{cita.fecha.split('T')[0]}</td>
+                          <td className="px-4 py-3 text-slate-300">{cita.hora}</td>
+                          <td className="px-4 py-3">
+                            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-200">
+                              {cita.estado}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-xs">
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleReschedule(cita)}
+                                className="rounded-full border border-slate-700/70 px-3 py-1 text-slate-300 transition hover:border-emerald-400/60 hover:text-emerald-200"
+                              >
+                                Reprogramar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleCancel(cita.id)}
+                                className="rounded-full border border-rose-500/40 px-3 py-1 text-rose-300 transition hover:border-rose-400 hover:text-rose-200"
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Usuarios Tab */}
       {isAdmin && activeTab === 'usuarios' && (
         <div className="space-y-6">
           <div className="rounded-3xl border border-slate-800/80 bg-slate-900/80 p-6">
@@ -646,6 +938,82 @@ const AdminPage = () => {
                   <option value="BARBER">Barbero</option>
                 </select>
               </div>
+              {userForm.role === 'BARBER' && (
+                <div className="md:col-span-2 space-y-4 rounded-2xl border border-slate-800/70 bg-slate-950/60 p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-emerald-300">
+                        <ShieldCheck className="h-4 w-4" /> Perfil del barbero
+                      </h4>
+                      <p className="mt-1 text-xs text-slate-400">
+                        Define el horario base y los días laborables para habilitar la agenda de este perfil.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Nombre completo</label>
+                      <input
+                        value={userForm.barberoProfile.nombre}
+                        onChange={(event) => handleUserBarberFieldChange('nombre', event.target.value)}
+                        className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                        placeholder="Carlos Hernández"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Duración base (min)</label>
+                      <input
+                        type="number"
+                        min={10}
+                        step={5}
+                        value={userForm.barberoProfile.duracionCita}
+                        onChange={(event) => handleUserBarberFieldChange('duracionCita', event.target.value)}
+                        className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Horario inicio</label>
+                      <input
+                        type="time"
+                        value={userForm.barberoProfile.horarioInicio}
+                        onChange={(event) => handleUserBarberFieldChange('horarioInicio', event.target.value)}
+                        className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Horario fin</label>
+                      <input
+                        type="time"
+                        value={userForm.barberoProfile.horarioFin}
+                        onChange={(event) => handleUserBarberFieldChange('horarioFin', event.target.value)}
+                        className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Días laborables</label>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {dayOptions.map((day) => {
+                          const active = userForm.barberoProfile.diasLaborales.includes(day.value);
+                          return (
+                            <button
+                              key={day.value}
+                              type="button"
+                              onClick={() => handleUserBarberDayToggle(day.value)}
+                              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                                active
+                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/60'
+                                  : 'border border-slate-700/70 text-slate-400 hover:border-emerald-400/60 hover:text-emerald-200'
+                              }`}
+                            >
+                              {day.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="md:col-span-2">
                 <button
                   type="submit"
@@ -680,7 +1048,7 @@ const AdminPage = () => {
                     <th className="px-4 py-3">Rol</th>
                     <th className="px-4 py-3">Teléfono</th>
                     <th className="px-4 py-3">Contraseña</th>
-                    <th className="px-4 py-3">Barbero</th>
+                    <th className="px-4 py-3">Perfil barbero</th>
                     <th className="px-4 py-3">Acciones</th>
                   </tr>
                 </thead>
@@ -700,9 +1068,37 @@ const AdminPage = () => {
                         <td className="px-4 py-3 font-mono text-xs text-emerald-200">
                           {showPasswords ? item.password : '••••••••'}
                         </td>
-                        <td className="px-4 py-3 text-slate-300">{item.barberoNombre || 'Sin asignar'}</td>
+                        <td className="px-4 py-3 text-slate-300">
+                          {item.role === 'BARBER' ? (
+                            <div className="flex flex-col gap-1">
+                              <span className="font-semibold text-white">
+                                {item.barberoProfile?.nombre || 'Sin asignar'}
+                              </span>
+                              <span
+                                className={`text-xs uppercase tracking-widest ${
+                                  item.barberoProfile
+                                    ? 'text-emerald-300'
+                                    : 'text-amber-300'
+                                }`}
+                              >
+                                {item.barberoProfile ? 'Perfil completo' : 'Perfil pendiente'}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-slate-500">No aplica</span>
+                          )}
+                        </td>
                         <td className="px-4 py-3 text-xs">
                           <div className="flex flex-wrap gap-2">
+                            {item.role === 'BARBER' && (
+                              <button
+                                type="button"
+                                onClick={() => openBarberProfileEditor(item)}
+                                className="rounded-full border border-emerald-400/60 px-3 py-1 text-emerald-200 transition hover:border-emerald-300 hover:text-emerald-100"
+                              >
+                                Configurar perfil
+                              </button>
+                            )}
                             <button
                               type="button"
                               onClick={() => handleResetPassword(item)}
@@ -733,10 +1129,232 @@ const AdminPage = () => {
               </table>
             </div>
           </div>
+          {selectedBarberUserId && (
+            <div className="rounded-3xl border border-slate-800/80 bg-slate-900/80 p-6">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
+                  <Edit3 className="h-5 w-5 text-emerald-400" /> Configurar perfil de barbero
+                </h3>
+                <button
+                  type="button"
+                  onClick={closeBarberProfileEditor}
+                  className="flex items-center gap-2 rounded-full border border-slate-700/70 px-3 py-1 text-xs uppercase tracking-widest text-slate-300 transition hover:border-rose-400/60 hover:text-rose-200"
+                >
+                  <XCircle className="h-4 w-4" /> Cerrar
+                </button>
+              </div>
+              <p className="mt-2 text-sm text-slate-400">
+                Ajusta los parámetros del barbero para alinear su agenda con los servicios disponibles.
+              </p>
+              <form onSubmit={handleSaveBarberProfile} className="mt-6 space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Nombre del barbero</label>
+                    <input
+                      value={barberProfileForm.nombre}
+                      onChange={(event) => handleBarberProfileFormChange('nombre', event.target.value)}
+                      className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                      placeholder="Carlos Hernández"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Duración base (min)</label>
+                    <input
+                      type="number"
+                      min={10}
+                      step={5}
+                      value={barberProfileForm.duracionCita}
+                      onChange={(event) => handleBarberProfileFormChange('duracionCita', event.target.value)}
+                      className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Horario inicio</label>
+                    <input
+                      type="time"
+                      value={barberProfileForm.horarioInicio}
+                      onChange={(event) => handleBarberProfileFormChange('horarioInicio', event.target.value)}
+                      className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Horario fin</label>
+                    <input
+                      type="time"
+                      value={barberProfileForm.horarioFin}
+                      onChange={(event) => handleBarberProfileFormChange('horarioFin', event.target.value)}
+                      className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Días laborables</label>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {dayOptions.map((day) => {
+                        const active = barberProfileForm.diasLaborales.includes(day.value);
+                        return (
+                          <button
+                            key={day.value}
+                            type="button"
+                            onClick={() => handleBarberProfileDayToggle(day.value)}
+                            className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                              active
+                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/60'
+                                : 'border border-slate-700/70 text-slate-400 hover:border-emerald-400/60 hover:text-emerald-200'
+                            }`}
+                          >
+                            {day.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-wrap justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={closeBarberProfileEditor}
+                    className="flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-xs uppercase tracking-widest text-slate-300 transition hover:border-rose-400/60 hover:text-rose-200"
+                  >
+                    <XCircle className="h-4 w-4" /> Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingBarberProfile}
+                    className="flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-950 transition hover:from-emerald-400 hover:to-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <Save className="h-4 w-4" /> {savingBarberProfile ? 'Guardando...' : 'Guardar perfil'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Negocio Tab */}
+      {isAdmin && activeTab === 'servicios' && (
+        <div className="grid gap-6 lg:grid-cols-[380px,1fr]">
+          <div className="rounded-3xl border border-slate-800/80 bg-slate-900/80 p-6">
+            <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
+              <Scissors className="h-5 w-5 text-emerald-400" /> {editingServiceId ? 'Editar servicio' : 'Nuevo servicio'}
+            </h3>
+            <p className="mt-1 text-sm text-slate-400">
+              Administra los servicios disponibles manteniendo actualizados sus precios y duraciones.
+            </p>
+            <form onSubmit={handleSubmitService} className="mt-6 space-y-4">
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Nombre</label>
+                <input
+                  name="nombre"
+                  value={serviceForm.nombre}
+                  onChange={handleServiceFormChange}
+                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                  placeholder="Corte premium"
+                />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Duración (min)</label>
+                  <input
+                    type="number"
+                    min={10}
+                    step={5}
+                    name="duracion"
+                    value={serviceForm.duracion}
+                    onChange={handleServiceFormChange}
+                    className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Precio (MXN)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.5}
+                    name="precio"
+                    value={serviceForm.precio}
+                    onChange={handleServiceFormChange}
+                    className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-wrap justify-end gap-3">
+                {editingServiceId && (
+                  <button
+                    type="button"
+                    onClick={handleCancelServiceEdit}
+                    className="flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-xs uppercase tracking-widest text-slate-300 transition hover:border-rose-400/60 hover:text-rose-200"
+                  >
+                    <XCircle className="h-4 w-4" /> Cancelar
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  disabled={savingService}
+                  className="flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-950 transition hover:from-emerald-400 hover:to-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Save className="h-4 w-4" /> {savingService ? 'Guardando...' : editingServiceId ? 'Actualizar servicio' : 'Crear servicio'}
+                </button>
+              </div>
+            </form>
+          </div>
+          <div className="rounded-3xl border border-slate-800/80 bg-slate-900/80 p-6">
+            <div className="flex items-center justify-between">
+              <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
+                <ListChecks className="h-5 w-5 text-emerald-400" /> Servicios disponibles
+              </h3>
+              <span className="text-xs uppercase tracking-[0.3em] text-emerald-300/70">{services.length} activos</span>
+            </div>
+            <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-800/80">
+              <table className="min-w-full text-left text-sm text-slate-300">
+                <thead className="bg-slate-900/80 text-xs uppercase tracking-widest text-slate-400">
+                  <tr>
+                    <th className="px-4 py-3">Servicio</th>
+                    <th className="px-4 py-3">Duración</th>
+                    <th className="px-4 py-3">Precio</th>
+                    <th className="px-4 py-3">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/70">
+                  {services.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-4 py-6 text-center text-slate-500">
+                        No hay servicios registrados.
+                      </td>
+                    </tr>
+                  ) : (
+                    services.map((service) => (
+                      <tr key={service.id} className="hover:bg-slate-800/30">
+                        <td className="px-4 py-3 text-white">{service.nombre}</td>
+                        <td className="px-4 py-3 text-slate-300">{service.duracion} min</td>
+                        <td className="px-4 py-3 text-emerald-300">{formatCurrency(service.precio)}</td>
+                        <td className="px-4 py-3 text-xs">
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleEditService(service)}
+                              className="rounded-full border border-slate-700/70 px-3 py-1 text-slate-300 transition hover:border-emerald-400/60 hover:text-emerald-200"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteService(service)}
+                              className="rounded-full border border-rose-500/40 px-3 py-1 text-rose-300 transition hover:border-rose-400 hover:text-rose-200"
+                            >
+                              <Trash2 className="mr-1 h-3.5 w-3.5" /> Eliminar
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isAdmin && activeTab === 'negocio' && (
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-3xl border border-slate-800/80 bg-slate-900/80 p-6">

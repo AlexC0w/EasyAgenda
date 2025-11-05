@@ -27,20 +27,16 @@ Agenda Octane es una solución fullstack para gestionar reservas de una barberí
    - Backend: copia `backend/.env.example` a `backend/.env` y ajusta la cadena de conexión a tu servidor MariaDB.
    - Frontend: copia `frontend/.env.example` a `frontend/.env` y ajusta `VITE_API_URL` si el backend corre en otra URL.
 
-3. **Genera el cliente de Prisma**
+3. **Aplica el esquema y genera el cliente de Prisma**
 
    ```bash
    cd backend
-   npx prisma generate
+   npm run prisma:init
    ```
 
-4. **Aplica el esquema y datos de ejemplo**
+   > El script ejecuta `prisma migrate deploy` y, si detecta que las tablas ya existen (por ejemplo, porque las creaste manualmente), aplica automáticamente `prisma db push` para alinear el esquema antes de correr `prisma generate`. Los comandos `npm run dev` y `npm run start` disparan este paso de forma implícita, pero es recomendable ejecutarlo manualmente la primera vez para validar la conexión.
 
-   - Ejecuta las migraciones de Prisma contra tu base de datos MariaDB:
-
-     ```bash
-     npx prisma migrate deploy
-     ```
+4. **Carga los datos de ejemplo**
 
    - Poblado inicial (dos barberos y tres servicios):
 
