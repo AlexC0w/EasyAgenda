@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
+import { invalidateWhatsAppConfig } from '../lib/whatsappConfig.js';
 
 const router = Router();
 
@@ -28,6 +29,7 @@ router.put('/', async (req, res, next) => {
         })
       )
     );
+    invalidateWhatsAppConfig();
     res.json(updates);
   } catch (error) {
     next(error);

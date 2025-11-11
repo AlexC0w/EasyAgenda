@@ -74,7 +74,7 @@ Agenda Octane es una solución fullstack para gestionar reservas de una barberí
   - `src/routes/disponibles.js`: Calcula horarios libres.
   - `src/routes/citas.js`: Registro, consulta, actualización de citas.
   - `src/lib/sendWhatsApp.js`: Integración simulada/real con API de WhatsApp.
-    - Listo para Gratbelabs: envía `number` y `body` con encabezado Bearer configurado por variables de entorno.
+    - Listo para Gratbelabs: envía `number` y `body` con encabezado Bearer configurable por variables de entorno o desde la sección "Información del negocio" del panel admin.
   - `src/jobs/reminderJob.js`: Cron job de recordatorios.
 
 ### Endpoints principales
@@ -102,7 +102,7 @@ Agenda Octane es una solución fullstack para gestionar reservas de una barberí
 | PATCH | `/users/:id` | Admin | Actualizar contraseña, teléfono o rol. |
 | DELETE | `/users/:id` | Admin | Eliminar usuarios. |
 | GET | `/business` | Admin | Consultar la información general del negocio. |
-| PUT | `/business` | Admin | Actualizar los datos públicos del estudio. |
+| PUT | `/business` | Admin | Actualizar los datos públicos del estudio y las credenciales de WhatsApp. |
 
 ### Variables de entorno (backend)
 
@@ -116,6 +116,7 @@ Agenda Octane es una solución fullstack para gestionar reservas de una barberí
 | `JWT_SECRET` | Clave usada para firmar los tokens de acceso. |
 
 Si `WHATSAPP_API_URL` o `WHATSAPP_API_KEY` no están configurados, se realizará un envío simulado mostrando el mensaje en consola.
+El token puede sobrescribirse desde la sección **Información del negocio** del panel administrativo sin reiniciar el backend.
 Si proporcionas una URL de ejemplo (por ejemplo, un dominio que contenga `example`), también se omite la petición real y se simula el envío para evitar errores de DNS.
 
 Los números telefónicos se normalizan eliminando caracteres no numéricos y aplicando el prefijo configurado cuando el número tiene diez dígitos o menos. La respuesta de la API externa (o el mensaje de error) se adjunta al payload que recibe el frontend para facilitar el diagnóstico en caso de fallos.

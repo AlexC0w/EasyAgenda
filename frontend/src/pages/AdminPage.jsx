@@ -28,6 +28,8 @@ import api from '../api/client.js';
 import SelectField from '../components/SelectField.jsx';
 import Alert from '../components/Alert.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import TimeField from '../components/TimeField.jsx';
+import { formatTimeDisplay, parseMeridiemTime } from '../utils/time.js';
 
 const toDateTime = (fecha, hora) => new Date(`${fecha.split('T')[0]}T${hora}:00`);
 
@@ -79,6 +81,7 @@ const defaultBusiness = {
   businessPhone: '',
   businessAddress: '',
   whatsappSender: '',
+  whatsappToken: '',
 };
 
 const AdminPage = () => {
@@ -291,10 +294,15 @@ const AdminPage = () => {
     const currentDate = cita.fecha.split('T')[0];
     const newDate = window.prompt('Nueva fecha (YYYY-MM-DD)', currentDate);
     if (!newDate) return;
-    const newTime = window.prompt('Nueva hora (HH:mm)', cita.hora);
-    if (!newTime) return;
+    const newTimeInput = window.prompt('Nueva hora (hh:mm AM/PM)', formatTimeDisplay(cita.hora));
+    if (!newTimeInput) return;
+    const parsedTime = parseMeridiemTime(newTimeInput);
+    if (!parsedTime) {
+      setStatus({ state: 'error', message: 'Formato de hora inválido. Usa el formato hh:mm AM/PM.' });
+      return;
+    }
     try {
-      await api.patch(`/citas/${cita.id}`, { fecha: newDate, hora: newTime });
+      await api.patch(`/citas/${cita.id}`, { fecha: newDate, hora: parsedTime });
       setStatus({ state: 'success', message: 'Cita reprogramada correctamente.' });
       await loadCitas(isAdmin ? selectedBarbero : '');
     } catch (error) {
@@ -848,7 +856,7 @@ const AdminPage = () => {
                           <td className="px-4 py-3 text-slate-300">{cita.barbero.nombre}</td>
                           <td className="px-4 py-3 text-slate-300">{cita.servicio.nombre}</td>
                           <td className="px-4 py-3 text-slate-300">{cita.fecha.split('T')[0]}</td>
-                          <td className="px-4 py-3 text-slate-300">{cita.hora}</td>
+                          <td className="px-4 py-3 text-slate-300">{formatTimeDisplay(cita.hora)}</td>
                           <td className="px-4 py-3">
                             <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-200">
                               {cita.estado}
@@ -972,19 +980,19 @@ const AdminPage = () => {
                     </div>
                     <div className="flex flex-col gap-2">
                       <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Horario inicio</label>
-                      <input
-                        type="time"
+                      <TimeField
+                        name="horarioInicio"
                         value={userForm.barberoProfile.horarioInicio}
-                        onChange={(event) => handleUserBarberFieldChange('horarioInicio', event.target.value)}
+                        onChange={(value) => handleUserBarberFieldChange('horarioInicio', value)}
                         className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
                       />
                     </div>
                     <div className="flex flex-col gap-2">
                       <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Horario fin</label>
-                      <input
-                        type="time"
+                      <TimeField
+                        name="horarioFin"
                         value={userForm.barberoProfile.horarioFin}
-                        onChange={(event) => handleUserBarberFieldChange('horarioFin', event.target.value)}
+                        onChange={(value) => handleUserBarberFieldChange('horarioFin', value)}
                         className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
                       />
                     </div>
@@ -1169,19 +1177,19 @@ const AdminPage = () => {
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Horario inicio</label>
-                    <input
-                      type="time"
+                    <TimeField
+                      name="barberProfileStart"
                       value={barberProfileForm.horarioInicio}
-                      onChange={(event) => handleBarberProfileFormChange('horarioInicio', event.target.value)}
+                      onChange={(value) => handleBarberProfileFormChange('horarioInicio', value)}
                       className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
                     />
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Horario fin</label>
-                    <input
-                      type="time"
+                    <TimeField
+                      name="barberProfileEnd"
                       value={barberProfileForm.horarioFin}
-                      onChange={(event) => handleBarberProfileFormChange('horarioFin', event.target.value)}
+                      onChange={(value) => handleBarberProfileFormChange('horarioFin', value)}
                       className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
                     />
                   </div>
@@ -1408,6 +1416,17 @@ const AdminPage = () => {
                   placeholder="+52 555 010 8888"
                 />
               </div>
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Token API de WhatsApp</label>
+                <input
+                  name="whatsappToken"
+                  value={business.whatsappToken}
+                  onChange={handleBusinessChange}
+                  className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                  placeholder="Ingresa tu token Gratbelabs"
+                />
+                <p className="mt-2 text-xs text-slate-500">Se enviará como encabezado Authorization en cada confirmación.</p>
+              </div>
               <button
                 type="submit"
                 disabled={savingBusiness}
@@ -1435,6 +1454,10 @@ const AdminPage = () => {
               </li>
               <li>
                 <strong className="text-emerald-300">WhatsApp remitente:</strong> {business.whatsappSender || '—'}
+              </li>
+              <li>
+                <strong className="text-emerald-300">Token WhatsApp:</strong>{' '}
+                {business.whatsappToken ? <code className="text-xs text-emerald-200">{business.whatsappToken}</code> : '—'}
               </li>
             </ul>
             <div className="mt-6 rounded-2xl border border-slate-800/60 bg-slate-950/40 p-5 text-sm text-slate-400">

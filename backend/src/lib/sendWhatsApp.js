@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getWhatsAppConfig } from './whatsappConfig.js';
 
 const normalizePhoneNumber = (input) => {
   if (!input) return null;
@@ -23,7 +24,7 @@ const normalizePhoneNumber = (input) => {
 };
 
 const sendWhatsApp = async (to, message) => {
-  const { WHATSAPP_API_URL, WHATSAPP_API_KEY } = process.env;
+  const { url: WHATSAPP_API_URL, key: WHATSAPP_API_KEY } = await getWhatsAppConfig();
   const number = normalizePhoneNumber(to);
 
   if (!WHATSAPP_API_URL || !WHATSAPP_API_KEY) {

@@ -12,6 +12,7 @@ import {
 import { toast } from 'react-toastify';
 import api from '../api/client.js';
 import Alert from '../components/Alert.jsx';
+import { formatTimeDisplay, formatTimeRange } from '../utils/time.js';
 
 const dayNameToLabel = {
   sunday: 'Dom',
@@ -281,7 +282,7 @@ const BookingPage = () => {
   };
 
   const workingScheduleLabel = selectedBarbero
-    ? `${selectedBarbero.horario_inicio} - ${selectedBarbero.horario_fin} · Bloques de ${selectedBarbero.duracion_cita} min`
+    ? `${formatTimeRange(selectedBarbero.horario_inicio, selectedBarbero.horario_fin)} · Bloques de ${selectedBarbero.duracion_cita} min`
     : '';
 
   return (
@@ -337,7 +338,7 @@ const BookingPage = () => {
                     </div>
                     <h4 className="mt-4 text-lg font-semibold text-white">{barbero.nombre}</h4>
                     <p className="mt-2 text-sm text-slate-400">
-                      Horario {barbero.horario_inicio} - {barbero.horario_fin}
+                      Horario {formatTimeRange(barbero.horario_inicio, barbero.horario_fin)}
                     </p>
                     <p className="mt-2 text-xs text-slate-500">
                       Intervalos de {barbero.duracion_cita} minutos
@@ -499,7 +500,7 @@ const BookingPage = () => {
                             : 'border-slate-800/80 bg-slate-900/60 text-slate-200 hover:border-emerald-400/40 hover:text-white'
                         }`}
                       >
-                        {slot}
+                        {formatTimeDisplay(slot)}
                       </button>
                     ))}
                 </div>
@@ -606,7 +607,7 @@ const BookingPage = () => {
               </div>
               <div className="flex items-center justify-between">
                 <dt className="text-slate-400">Hora</dt>
-                <dd className="font-semibold text-white">{confirmation.hora}</dd>
+                <dd className="font-semibold text-white">{formatTimeDisplay(confirmation.hora)}</dd>
               </div>
               <div className="flex items-center justify-between border-t border-slate-800 pt-4">
                 <dt className="text-slate-400">Total</dt>

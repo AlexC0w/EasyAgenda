@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import prisma from '../lib/prisma.js';
 import sendWhatsApp from '../lib/sendWhatsApp.js';
+import { formatTimeToMeridiem } from '../utils/time.js';
 
 const job = cron.schedule('*/5 * * * *', async () => {
   try {
@@ -23,7 +24,7 @@ const job = cron.schedule('*/5 * * * *', async () => {
         const citaDateTime = new Date(`${cita.fecha.toISOString().split('T')[0]}T${cita.hora}:00`);
         const diff = citaDateTime.getTime() - inOneHour.getTime();
         if (Math.abs(diff) <= 5 * 60 * 1000) {
-          const message = `¡Hola ${cita.cliente}! Te recordamos tu cita con ${cita.barbero.nombre} para ${cita.servicio.nombre} a las ${cita.hora}.`;
+          const message = `¡Hola ${cita.cliente}! Te recordamos tu cita con ${cita.barbero.nombre} para ${cita.servicio.nombre} a las ${formatTimeToMeridiem(cita.hora)}.`;
           await sendWhatsApp(cita.telefono, message);
           await prisma.cita.update({
             where: { id: cita.id },

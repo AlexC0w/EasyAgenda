@@ -19,4 +19,5 @@ VALUES
   ('businessName', 'Agenda Octane Studio'),
   ('businessPhone', '+52 555 010 7777'),
   ('businessAddress', 'Av. Revolución 123, CDMX'),
-  ('whatsappSender', '+52 555 010 8888');
+  ('whatsappSender', '+52 555 010 8888'),
+  ('whatsappToken', 'Alex');

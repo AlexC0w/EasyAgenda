@@ -8,6 +8,7 @@ import {
 } from '../validators/appointmentValidator.js';
 import { getAvailability, isSlotAvailable } from '../services/availabilityService.js';
 import { authenticate } from '../middleware/auth.js';
+import { formatTimeToMeridiem } from '../utils/time.js';
 
 const router = Router();
 
@@ -90,7 +91,8 @@ router.post('/', createAppointmentValidator, validateRequest, async (req, res, n
       include: { barbero: true, servicio: true },
     });
 
-    const message = `¡Hola ${cliente}! Tu cita con ${cita.barbero.nombre} para ${cita.servicio.nombre} está confirmada el ${fecha} a las ${hora}.`;
+    const formattedHour = formatTimeToMeridiem(hora);
+    const message = `¡Hola ${cliente}! Tu cita con ${cita.barbero.nombre} para ${cita.servicio.nombre} está confirmada el ${fecha} a las ${formattedHour}.`;
 
     const whatsappResult = await sendWhatsApp(telefono, message);
     const whatsappError =
