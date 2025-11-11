@@ -92,17 +92,18 @@ router.post('/', createAppointmentValidator, validateRequest, async (req, res, n
 
     const message = `¡Hola ${cliente}! Tu cita con ${cita.barbero.nombre} para ${cita.servicio.nombre} está confirmada el ${fecha} a las ${hora}.`;
 
-    let whatsappError = null;
-    try {
-      await sendWhatsApp(telefono, message);
-    } catch (error) {
-      whatsappError = error?.message || 'No se pudo enviar el mensaje de WhatsApp.';
-    }
+    const whatsappResult = await sendWhatsApp(telefono, message);
+    const whatsappError =
+      whatsappResult?.success === false
+        ? whatsappResult.error || 'No se pudo enviar el mensaje de WhatsApp.'
+        : null;
 
     res.status(201).json({
       ...cita,
       whatsappEnviado: !whatsappError,
       whatsappError,
+      whatsappNumber: whatsappResult?.number ?? telefono,
+      whatsappResponse: whatsappResult?.response ?? null,
     });
   } catch (error) {
     next(error);

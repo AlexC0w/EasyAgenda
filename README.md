@@ -112,9 +112,12 @@ Agenda Octane es una solución fullstack para gestionar reservas de una barberí
 | `PORT` | Puerto HTTP del servidor Express (por defecto `4000`). |
 | `WHATSAPP_API_URL` | URL de la API externa de WhatsApp (usa `https://appapi.gratbelabs.com/api/messages/send` para Gratbelabs). |
 | `WHATSAPP_API_KEY` | Token Bearer para la API de WhatsApp (por ejemplo `Alex` para el entorno de pruebas). |
+| `WHATSAPP_DEFAULT_COUNTRY_CODE` | (Opcional) Prefijo numérico para completar teléfonos locales, por ejemplo `52` para México. |
 | `JWT_SECRET` | Clave usada para firmar los tokens de acceso. |
 
 Si `WHATSAPP_API_URL` o `WHATSAPP_API_KEY` no están configurados, se realizará un envío simulado mostrando el mensaje en consola.
+
+Los números telefónicos se normalizan eliminando caracteres no numéricos y aplicando el prefijo configurado cuando el número tiene diez dígitos o menos. La respuesta de la API externa (o el mensaje de error) se adjunta al payload que recibe el frontend para facilitar el diagnóstico en caso de fallos.
 
 ## 💻 Frontend
 
