@@ -31,6 +31,22 @@ const sendWhatsApp = async (to, message) => {
     return { simulated: true, number: to };
   }
 
+  let isPlaceholderUrl = false;
+  try {
+    const parsed = new URL(WHATSAPP_API_URL);
+    isPlaceholderUrl = parsed.hostname.includes('example');
+  } catch (error) {
+    console.warn('No se pudo interpretar WHATSAPP_API_URL, usando simulación.', error);
+    isPlaceholderUrl = true;
+  }
+
+  if (isPlaceholderUrl) {
+    console.log(
+      `Mensaje WhatsApp simulado (URL placeholder) para ${to}: ${message}`
+    );
+    return { simulated: true, number: to };
+  }
+
   if (!number) {
     console.warn('Número de WhatsApp inválido o vacío:', to);
     return { success: false, error: 'Número de teléfono inválido', number: to };

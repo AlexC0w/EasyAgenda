@@ -116,6 +116,7 @@ Agenda Octane es una solución fullstack para gestionar reservas de una barberí
 | `JWT_SECRET` | Clave usada para firmar los tokens de acceso. |
 
 Si `WHATSAPP_API_URL` o `WHATSAPP_API_KEY` no están configurados, se realizará un envío simulado mostrando el mensaje en consola.
+Si proporcionas una URL de ejemplo (por ejemplo, un dominio que contenga `example`), también se omite la petición real y se simula el envío para evitar errores de DNS.
 
 Los números telefónicos se normalizan eliminando caracteres no numéricos y aplicando el prefijo configurado cuando el número tiene diez dígitos o menos. La respuesta de la API externa (o el mensaje de error) se adjunta al payload que recibe el frontend para facilitar el diagnóstico en caso de fallos.
 
