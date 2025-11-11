@@ -92,7 +92,7 @@ router.post('/', createAppointmentValidator, validateRequest, async (req, res, n
     });
 
     const formattedHour = formatTimeToMeridiem(hora);
-    const message = `¡Hola ${cliente}! Tu cita con ${cita.barbero.nombre} para ${cita.servicio.nombre} está confirmada el ${fecha} a las ${formattedHour}.`;
+    const message = `¡Hola ${cliente}! Tu cita con ${cita.barbero.nombre} para ${cita.servicio.nombre} está confirmada el ${fecha} a las ${formattedHour}. Duración estimada: ${cita.servicio.duracion} minutos.`;
 
     const whatsappResult = await sendWhatsApp(telefono, message);
     const whatsappError =

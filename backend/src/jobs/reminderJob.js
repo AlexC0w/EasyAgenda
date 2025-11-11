@@ -24,7 +24,7 @@ const job = cron.schedule('*/5 * * * *', async () => {
         const citaDateTime = new Date(`${cita.fecha.toISOString().split('T')[0]}T${cita.hora}:00`);
         const diff = citaDateTime.getTime() - inOneHour.getTime();
         if (Math.abs(diff) <= 5 * 60 * 1000) {
-          const message = `¡Hola ${cita.cliente}! Te recordamos tu cita con ${cita.barbero.nombre} para ${cita.servicio.nombre} a las ${formatTimeToMeridiem(cita.hora)}.`;
+          const message = `¡Hola ${cita.cliente}! Te recordamos tu cita con ${cita.barbero.nombre} para ${cita.servicio.nombre} a las ${formatTimeToMeridiem(cita.hora)}. Duración estimada: ${cita.servicio.duracion} minutos.`;
           await sendWhatsApp(cita.telefono, message);
           await prisma.cita.update({
             where: { id: cita.id },
