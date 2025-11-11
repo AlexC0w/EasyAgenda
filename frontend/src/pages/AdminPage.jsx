@@ -321,7 +321,14 @@ const AdminPage = () => {
   };
 
   const handleCancel = async (id) => {
-    const confirmCancel = window.confirm("¿Deseas cancelar esta cita?");
+    const confirmCancel = window.confirm('¿Deseas cancelar esta cita?');
+    if (!confirmCancel) return;
+    try {
+      await api.patch(`/citas/${id}`, { estado: 'cancelada' });
+      setStatus({ state: 'success', message: 'Cita cancelada correctamente.' });
+  const handleEventClick = async (info) => {
+    const citaId = info.event.id;
+    const confirmCancel = window.confirm('¿Deseas cancelar esta cita?');
     if (!confirmCancel) return;
     try {
       await api.patch(`/citas/${id}`, { estado: "cancelada" });
@@ -336,60 +343,79 @@ const AdminPage = () => {
   };
 
   const handleReschedule = async (cita) => {
-    const currentDate = cita.fecha.split("T")[0];
-    const newDate = window.prompt("Nueva fecha (YYYY-MM-DD)", currentDate);
+    const currentDate = cita.fecha.split('T')[0];
+    const newDate = window.prompt('Nueva fecha (YYYY-MM-DD)', currentDate);
     if (!newDate) return;
-    const newTime = window.prompt("Nueva hora (HH:mm)", cita.hora);
+    const newTime = window.prompt('Nueva hora (HH:mm)', cita.hora);
     if (!newTime) return;
     try {
       await api.patch(`/citas/${cita.id}`, { fecha: newDate, hora: newTime });
-      setStatus({
-        state: "success",
-        message: "Cita reprogramada correctamente.",
-      });
-      await loadCitas(isAdmin ? selectedBarbero : "");
+      setStatus({ state: 'success', message: 'Cita reprogramada correctamente.' });
+      await loadCitas(selectedBarbero);
     } catch (error) {
       console.error(error);
       const message =
-        error.response?.data?.message ||
-        "No fue posible reprogramar la cita. Revisa la disponibilidad.";
-      setStatus({ state: "error", message });
+        error.response?.data?.message || 'No fue posible reprogramar la cita. Revisa la disponibilidad.';
+      setStatus({ state: 'error', message });
     }
   };
 
-  const dayHeaderContent = (arg) => {
-    const dayName = arg.date.toLocaleDateString("es-MX", { weekday: "short" });
-    const dayNumber = arg.date.getDate();
-
-    return {
-      html: `
-        <div class="fc-col-header-chip">
-          <span class="fc-chip-day">${dayName.toUpperCase()}</span>
-          <span class="fc-chip-date">${dayNumber}</span>
+  return (
+    <div className="space-y-8">
+      <div className="rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 shadow-xl shadow-emerald-500/10">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-emerald-300/70">Agenda Octane</p>
+            <h2 className="mt-2 text-3xl font-semibold text-white">Panel de administración</h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Gestiona tu agenda, reprograma citas y mantén el control desde un solo lugar.
+            </p>
+          </div>
+          <div className="flex gap-4">
+            <SelectField
+              label="Filtrar por barbero"
+              placeholder="Todos los barberos"
+              options={[
+                { value: '', label: 'Todos' },
+                ...barberos.map((barbero) => ({ value: String(barbero.id), label: barbero.nombre })),
+              ]}
+              value={selectedBarbero}
+              onChange={setSelectedBarbero}
+            />
+          </div>
         </div>
-      `,
-    };
-  };
+      </div>
 
-  const slotLabelContent = (arg) => {
-    const formatter = new Intl.DateTimeFormat("es-MX", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
-    const parts = formatter.formatToParts(arg.date);
-    const hour = parts.find((part) => part.type === "hour")?.value ?? "";
-    const minute = parts.find((part) => part.type === "minute")?.value ?? "";
-    const period = parts
-      .find((part) => part.type === "dayPeriod")
-      ?.value.replace(/[.\s]/g, "")
-      .toUpperCase();
-
-    return {
-      html: `
-        <div class="fc-slot-label-chip">
-          <span class="fc-slot-label-time">${hour}:${minute}</span>
-          <span class="fc-slot-label-meridiem">${period || ""}</span>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-3xl border border-emerald-500/20 bg-emerald-500/10 p-5 text-white shadow-lg shadow-emerald-500/20">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-100/80">Citas totales</h3>
+            <Calendar className="h-5 w-5 text-emerald-200" />
+          </div>
+          <p className="mt-4 text-3xl font-bold">{metrics.total}</p>
+        </div>
+        <div className="rounded-3xl border border-slate-800/80 bg-slate-900/60 p-5 text-white shadow-lg shadow-emerald-500/10">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">Citas confirmadas</h3>
+            <Users className="h-5 w-5 text-emerald-200" />
+          </div>
+          <p className="mt-4 text-3xl font-bold text-emerald-300">{metrics.confirmadas}</p>
+        </div>
+        <div className="rounded-3xl border border-slate-800/80 bg-slate-900/60 p-5 text-white shadow-lg shadow-emerald-500/10">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">Ingresos estimados</h3>
+            <DollarSign className="h-5 w-5 text-emerald-200" />
+          </div>
+          <p className="mt-4 text-3xl font-bold text-emerald-300">
+            {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(metrics.ingresos)}
+          </p>
+        </div>
+        <div className="rounded-3xl border border-slate-800/80 bg-slate-900/60 p-5 text-white shadow-lg shadow-emerald-500/10">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">Duración promedio</h3>
+            <Clock className="h-5 w-5 text-emerald-200" />
+          </div>
+          <p className="mt-4 text-3xl font-bold text-emerald-300">{metrics.duracionPromedio} min</p>
         </div>
       `,
     };
@@ -807,93 +833,113 @@ const AdminPage = () => {
 
    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+      {status.state !== 'idle' && <Alert type={status.state === 'error' ? 'error' : status.state}>{status.message}</Alert>}
 
-  const barberoOptions = useMemo(() => {
-    const base = barberos.map((barbero) => ({
-      value: String(barbero.id),
-      label: barbero.nombre,
-    }));
-    return [{ value: "", label: "Todos los barberos" }, ...base];
-  }, [barberos]);
-
-  return (
-    <div className="space-y-8">
-      <div className="rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 shadow-xl shadow-emerald-500/10">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-emerald-300/70">
-              Agenda Octane
-            </p>
-            <h2 className="mt-2 text-3xl font-semibold text-white">
-              Panel de administración
-            </h2>
-            <p className="mt-2 text-sm text-slate-400">
-              Gestiona la agenda, usuarios y la información clave del estudio
-              desde una vista unificada.
-            </p>
-          </div>
-          <div className="flex flex-col items-start gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-sm text-emerald-100">
-            <span className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-emerald-300/80">
-              <ShieldCheck className="h-4 w-4" /> Sesión activa
-            </span>
-            <span className="text-base font-semibold text-white">
-              {user?.username}
-            </span>
-            <span className="text-xs uppercase tracking-[0.3em] text-emerald-300/70">
-              Rol · {user?.role}
-            </span>
-            {user?.barberoNombre && (
-              <span className="text-xs text-emerald-200/80">
-                Asignado a: {user.barberoNombre}
-              </span>
-            )}
+      <div className="space-y-6">
+        <div className="overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/60 shadow-xl shadow-emerald-500/10">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-800/80">
+              <thead className="bg-slate-900/80">
+                <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
+                  <th className="px-5 py-3">Cliente</th>
+                  <th className="px-5 py-3">Barbero</th>
+                  <th className="px-5 py-3">Servicio</th>
+                  <th className="px-5 py-3">Fecha</th>
+                  <th className="px-5 py-3">Hora</th>
+                  <th className="px-5 py-3">Estado</th>
+                  <th className="px-5 py-3">Precio</th>
+                  <th className="px-5 py-3" aria-label="acciones" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 text-sm">
+                {loading ? (
+                  <tr>
+                    <td colSpan={8} className="px-5 py-6 text-center text-slate-400">
+                      Cargando citas…
+                    </td>
+                  </tr>
+                ) : citas.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-5 py-6 text-center text-slate-500">
+                      No hay citas registradas.
+                    </td>
+                  </tr>
+                ) : (
+                  citas.map((cita) => {
+                    const estadoColor =
+                      cita.estado === 'cancelada'
+                        ? 'bg-rose-500/20 text-rose-300'
+                        : cita.estado === 'pendiente'
+                        ? 'bg-amber-500/20 text-amber-200'
+                        : 'bg-emerald-500/20 text-emerald-200';
+                    return (
+                      <tr key={cita.id} className="hover:bg-slate-800/40">
+                        <td className="px-5 py-4 text-white">{cita.cliente}</td>
+                        <td className="px-5 py-4 text-slate-300">{cita.barbero.nombre}</td>
+                        <td className="px-5 py-4 text-slate-300">{cita.servicio.nombre}</td>
+                        <td className="px-5 py-4 text-slate-300">{cita.fecha.split('T')[0]}</td>
+                        <td className="px-5 py-4 text-slate-300">{cita.hora}</td>
+                        <td className="px-5 py-4">
+                          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${estadoColor}`}>
+                            {cita.estado}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-emerald-300">
+                          {new Intl.NumberFormat('es-MX', {
+                            style: 'currency',
+                            currency: 'MXN',
+                          }).format(Number(cita.servicio.precio))}
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleReschedule(cita)}
+                              className="rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:border-emerald-400 hover:text-white"
+                            >
+                              Mover
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleCancel(cita.id)}
+                              className="rounded-full border border-rose-500/60 px-3 py-1 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/20"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
-        {isAdmin && (
-          <div className="mt-6 flex flex-wrap gap-3">
-            {[
-              {
-                id: "agenda",
-                label: "Agenda",
-                icon: <Calendar className="h-4 w-4" />,
-              },
-              {
-                id: "usuarios",
-                label: "Usuarios",
-                icon: <Users className="h-4 w-4" />,
-              },
-              {
-                id: "servicios",
-                label: "Servicios",
-                icon: <Scissors className="h-4 w-4" />,
-              },
-              {
-                id: "negocio",
-                label: "Negocio",
-                icon: <Settings className="h-4 w-4" />,
-              },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-widest transition ${
-                  activeTab === tab.id
-                    ? "border-emerald-400 bg-emerald-500/10 text-emerald-200"
-                    : "border-slate-700/70 text-slate-400 hover:border-emerald-400/60 hover:text-emerald-200"
-                }`}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        )}
+
+        <div className="rounded-3xl border border-slate-800/80 bg-gradient-to-br from-slate-900 via-slate-900/80 to-slate-950 p-4 shadow-2xl shadow-emerald-500/10">
+          <FullCalendar
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="timeGridWeek"
+            headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
+            slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+            events={events}
+            height="auto"
+            slotMinTime="08:00:00"
+            slotMaxTime="21:00:00"
+            eventOverlap={false}
+            editable
+            droppable
+            eventDrop={handleEventDrop}
+            eventClick={({ event }) => handleCancel(event.id)}
+            locale="es"
+            locales={[esLocale]}
+            nowIndicator
+            eventContent={renderEventContent}
+            eventClassNames={eventClassNames}
+            className="fc-theme-emerald"
+          />
+        </div>
       </div>
 
       {status.state !== "idle" && (
