@@ -7,12 +7,22 @@ import {
   updateAppointmentValidator,
 } from '../validators/appointmentValidator.js';
 import { getAvailability, isSlotAvailable } from '../services/availabilityService.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = Router();
 
-router.get('/', async (req, res, next) => {
+router.get('/', authenticate, async (req, res, next) => {
   try {
+    const where = {};
+    if (req.user.role === 'BARBER') {
+      if (!req.user.barberoId) {
+        return res.status(403).json({ message: 'Tu cuenta no está vinculada a un barbero.' });
+      }
+      where.barbero_id = req.user.barberoId;
+    }
+
     const citas = await prisma.cita.findMany({
+      where,
       include: { barbero: true, servicio: true },
       orderBy: [{ fecha: 'asc' }, { hora: 'asc' }],
     });
@@ -22,9 +32,13 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-router.get('/:barberoId', async (req, res, next) => {
+router.get('/:barberoId', authenticate, async (req, res, next) => {
   try {
     const barberoId = Number(req.params.barberoId);
+    if (req.user.role === 'BARBER' && req.user.barberoId !== barberoId) {
+      return res.status(403).json({ message: 'No autorizado a ver las citas de otros barberos.' });
+    }
+
     const citas = await prisma.cita.findMany({
       where: { barbero_id: barberoId },
       include: { barbero: true, servicio: true },
@@ -77,15 +91,25 @@ router.post('/', createAppointmentValidator, validateRequest, async (req, res, n
     });
 
     const message = `¡Hola ${cliente}! Tu cita con ${cita.barbero.nombre} para ${cita.servicio.nombre} está confirmada el ${fecha} a las ${hora}.`;
-    await sendWhatsApp(telefono, message);
 
-    res.status(201).json(cita);
+    let whatsappError = null;
+    try {
+      await sendWhatsApp(telefono, message);
+    } catch (error) {
+      whatsappError = error?.message || 'No se pudo enviar el mensaje de WhatsApp.';
+    }
+
+    res.status(201).json({
+      ...cita,
+      whatsappEnviado: !whatsappError,
+      whatsappError,
+    });
   } catch (error) {
     next(error);
   }
 });
 
-router.patch('/:id', updateAppointmentValidator, validateRequest, async (req, res, next) => {
+router.patch('/:id', authenticate, updateAppointmentValidator, validateRequest, async (req, res, next) => {
   try {
     const { id } = req.params;
     const { estado, fecha, hora } = req.body;
@@ -93,6 +117,10 @@ router.patch('/:id', updateAppointmentValidator, validateRequest, async (req, re
     const cita = await prisma.cita.findUnique({ where: { id: Number(id) }, include: { servicio: true } });
     if (!cita) {
       return res.status(404).json({ message: 'Cita no encontrada' });
+    }
+
+    if (req.user.role === 'BARBER' && req.user.barberoId !== cita.barbero_id) {
+      return res.status(403).json({ message: 'No autorizado para modificar esta cita.' });
     }
 
     if ((fecha || hora) && !(fecha && hora)) {
