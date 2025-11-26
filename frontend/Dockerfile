@@ -10,7 +10,7 @@ COPY . .
 RUN npm run build
 
 # Production Stage
-FROM nginx:alpine
+FROM nginx:1.25
 
 COPY --from=build /app/dist /usr/share/nginx/html
 RUN chmod -R 755 /usr/share/nginx/html
