@@ -1,7 +1,7 @@
 import { spawnSync } from 'child_process';
 
 function run(command, args) {
-  const result = spawnSync(command, args, { encoding: 'utf-8' });
+  const result = spawnSync(command, args, { encoding: 'utf-8', shell: true });
   if (result.stdout) {
     process.stdout.write(result.stdout);
   }

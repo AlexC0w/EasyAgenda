@@ -83,6 +83,7 @@ router.use(requireRole('ADMIN'));
 router.get('/', async (req, res, next) => {
   try {
     const users = await prisma.user.findMany({
+      where: { businessId: req.user.businessId },
       orderBy: { createdAt: 'desc' },
       include: { barbero: true },
     });
@@ -103,6 +104,8 @@ router.post('/', async (req, res, next) => {
     if (role === 'BARBER') {
       try {
         barberoData = buildBarberoData(barberoProfile);
+        // Add businessId to barbero data
+        barberoData.businessId = req.user.businessId;
       } catch (validationError) {
         return res.status(400).json({ message: validationError.message });
       }
@@ -116,6 +119,7 @@ router.post('/', async (req, res, next) => {
         passwordPlain: password,
         telefono: telefono || null,
         role,
+        businessId: req.user.businessId,
         ...(barberoData
           ? {
               barbero: {
@@ -146,7 +150,8 @@ router.patch('/:id', async (req, res, next) => {
       where: { id: userId },
       include: { barbero: true },
     });
-    if (!existing) {
+    
+    if (!existing || existing.businessId !== req.user.businessId) {
       return res.status(404).json({ message: 'Usuario no encontrado.' });
     }
 
@@ -191,7 +196,7 @@ router.patch('/:id', async (req, res, next) => {
                 }
               : {
                   barbero: {
-                    create: barberoData,
+                    create: { ...barberoData, businessId: req.user.businessId },
                   },
                 }
             : {}),
@@ -229,7 +234,8 @@ router.delete('/:id', async (req, res, next) => {
       where: { id: userId },
       include: { barbero: true },
     });
-    if (!existing) {
+    
+    if (!existing || existing.businessId !== req.user.businessId) {
       return res.status(404).json({ message: 'Usuario no encontrado.' });
     }
 

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import {
   Calendar,
   Check,
@@ -66,6 +67,7 @@ const findFirstSelectableDate = (barbero) => {
 };
 
 const BookingPage = () => {
+  const { slug } = useParams();
   const [view, setView] = useState('selection');
   const [barberos, setBarberos] = useState([]);
   const [servicios, setServicios] = useState([]);
@@ -83,10 +85,12 @@ const BookingPage = () => {
 
   useEffect(() => {
     const loadInitialData = async () => {
+      if (!slug) return;
+      
       try {
         const [barberosRes, serviciosRes] = await Promise.all([
-          api.get('/barberos'),
-          api.get('/servicios'),
+          api.get('/barberos', { params: { slug } }),
+          api.get('/servicios', { params: { slug } }),
         ]);
         setBarberos(barberosRes.data);
         setServicios(serviciosRes.data);
@@ -105,11 +109,11 @@ const BookingPage = () => {
         }
       } catch (error) {
         console.error(error);
-        setStatus({ state: 'error', message: 'No se pudieron cargar los datos iniciales.' });
+        setStatus({ state: 'error', message: 'No se pudieron cargar los datos iniciales. Verifica que el negocio exista.' });
       }
     };
     loadInitialData();
-  }, []);
+  }, [slug]);
 
   const selectedBarbero = useMemo(
     () => barberos.find((barbero) => String(barbero.id) === selectedBarberoId),
@@ -145,7 +149,7 @@ const BookingPage = () => {
       try {
         setLoadingSlots(true);
         const { data } = await api.get(`/disponibles/${selectedBarberoId}`, {
-          params: { fecha: selectedDate, servicioId: selectedServicioId },
+          params: { fecha: selectedDate, servicioId: selectedServicioId, slug },
         });
         setAvailability(data.disponibilidad || []);
       } catch (error) {
@@ -156,7 +160,7 @@ const BookingPage = () => {
       }
     };
     loadAvailability();
-  }, [selectedBarberoId, selectedServicioId, selectedDate]);
+  }, [selectedBarberoId, selectedServicioId, selectedDate, slug]);
 
   const daysOfWeek = useMemo(
     () => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
@@ -231,8 +235,9 @@ const BookingPage = () => {
         telefono: formData.telefono,
         fecha: selectedDate,
         hora: selectedTime,
+        slug,
       };
-      const { data } = await api.post('/citas', payload);
+      const { data } = await api.post('/citas', payload, { params: { slug } });
       setConfirmation({
         cita: data,
         barbero: selectedBarbero,
@@ -243,19 +248,13 @@ const BookingPage = () => {
         telefono: formData.telefono,
         email: formData.email,
       });
-      if (data.whatsappEnviado === false) {
-        toast.error(data.whatsappError || 'No se pudo enviar la confirmación por WhatsApp.');
-      }
       setStatus({
         state: 'success',
-        message:
-          data.whatsappEnviado === false
-            ? '¡Cita reservada! No pudimos enviar la confirmación por WhatsApp, pero tu cita está lista.'
-            : '¡Cita reservada! Recibirás una confirmación por WhatsApp en breve.',
+        message: '¡Cita reservada con éxito! Te esperamos.',
       });
       setView('confirmation');
       const refresh = await api.get(`/disponibles/${selectedBarbero.id}`, {
-        params: { fecha: selectedDate, servicioId: selectedServicio.id },
+        params: { fecha: selectedDate, servicioId: selectedServicio.id, slug },
       });
       setAvailability(refresh.data.disponibilidad || []);
     } catch (error) {
@@ -291,21 +290,21 @@ const BookingPage = () => {
       {view === 'selection' && (
         <div className="space-y-10">
           <div className="text-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-300">
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600 dark:text-emerald-300">
               <Calendar className="h-3.5 w-3.5" /> Agenda tu experiencia
             </span>
-            <h2 className="mt-6 text-4xl font-bold text-white">Reserva con tu barbero favorito</h2>
-            <p className="mt-2 text-slate-400">
-              Selecciona un barbero y el servicio que deseas para ver horarios disponibles.
+            <h2 className="mt-6 text-4xl font-bold text-slate-900 dark:text-white">Reserva con tu profesional favorito</h2>
+            <p className="mt-2 text-slate-600 dark:text-slate-400">
+              Selecciona un profesional y el servicio que deseas para ver horarios disponibles.
             </p>
           </div>
 
           <section className="space-y-6">
-            <h3 className="flex items-center gap-3 text-xl font-semibold text-white">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-300">
+            <h3 className="flex items-center gap-3 text-xl font-semibold text-slate-900 dark:text-white">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
                 <User className="h-5 w-5" />
               </span>
-              Barberos disponibles
+              Profesionales disponibles
             </h3>
             <div className="grid gap-4 md:grid-cols-3">
               {barberos.map((barbero, index) => {
@@ -322,11 +321,11 @@ const BookingPage = () => {
                     className={`group rounded-2xl border px-6 py-6 text-left transition-all ${
                       isActive
                         ? 'border-emerald-500/60 bg-emerald-500/10 shadow-lg shadow-emerald-500/20'
-                        : 'border-slate-800/80 bg-slate-900/60 hover:border-emerald-400/40 hover:bg-slate-900'
+                        : 'border-slate-200 bg-white hover:border-emerald-400/40 hover:bg-slate-50 dark:border-slate-800/80 dark:bg-slate-900/60 dark:hover:bg-slate-900'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-800 text-lg font-semibold text-emerald-300">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-lg font-semibold text-emerald-600 dark:bg-slate-800 dark:text-emerald-300">
                         {initials}
                       </div>
                       <span className="text-xs uppercase tracking-wide text-slate-500">
@@ -335,8 +334,8 @@ const BookingPage = () => {
                           .join(' · ')}
                       </span>
                     </div>
-                    <h4 className="mt-4 text-lg font-semibold text-white">{barbero.nombre}</h4>
-                    <p className="mt-2 text-sm text-slate-400">
+                    <h4 className="mt-4 text-lg font-semibold text-slate-900 dark:text-white">{barbero.nombre}</h4>
+                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                       Horario {barbero.horario_inicio} - {barbero.horario_fin}
                     </p>
                     <p className="mt-2 text-xs text-slate-500">
@@ -350,8 +349,8 @@ const BookingPage = () => {
 
           {selectedBarbero && (
             <section className="space-y-6">
-              <h3 className="flex items-center gap-3 text-xl font-semibold text-white">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-300">
+              <h3 className="flex items-center gap-3 text-xl font-semibold text-slate-900 dark:text-white">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
                   <Clock className="h-5 w-5" />
                 </span>
                 Selecciona tu servicio
@@ -367,14 +366,14 @@ const BookingPage = () => {
                       className={`rounded-2xl border p-5 text-left transition-all ${
                         isActive
                           ? 'border-emerald-500/60 bg-emerald-500/10 shadow-lg shadow-emerald-500/20'
-                          : 'border-slate-800/80 bg-slate-900/60 hover:border-emerald-400/40 hover:bg-slate-900'
+                          : 'border-slate-200 bg-white hover:border-emerald-400/40 hover:bg-slate-50 dark:border-slate-800/80 dark:bg-slate-900/60 dark:hover:bg-slate-900'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <h4 className="text-lg font-semibold text-white">{servicio.nombre}</h4>
-                        <span className="text-emerald-300 font-semibold">{formatCurrency(servicio.precio)}</span>
+                        <h4 className="text-lg font-semibold text-slate-900 dark:text-white">{servicio.nombre}</h4>
+                        <span className="text-emerald-600 font-semibold dark:text-emerald-300">{formatCurrency(servicio.precio)}</span>
                       </div>
-                      <p className="mt-2 text-sm text-slate-400">{servicio.duracion} minutos</p>
+                      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{servicio.duracion} minutos</p>
                     </button>
                   );
                 })}
@@ -402,31 +401,31 @@ const BookingPage = () => {
           <button
             type="button"
             onClick={() => setView('selection')}
-            className="inline-flex items-center gap-2 text-sm font-medium text-slate-400 transition hover:text-white"
+            className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
           >
             <ChevronLeft className="h-4 w-4" /> Volver a la selección
           </button>
 
           <div className="grid gap-8 lg:grid-cols-[2fr,1fr]">
-            <section className="rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 shadow-xl shadow-emerald-500/10">
+            <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-emerald-500/5 dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-emerald-500/10">
               <header className="flex items-center justify-between">
                 <button
                   type="button"
                   onClick={() => handleMonthShift(-1)}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-slate-300 transition hover:border-emerald-500/40 hover:text-white"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-emerald-500/40 hover:text-emerald-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
                 <div className="text-center">
-                  <h3 className="text-xl font-semibold text-white">
+                  <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
                     {monthCursor.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })}
                   </h3>
-                  <p className="text-xs uppercase tracking-[0.3em] text-emerald-300/70">Disponibilidad</p>
+                  <p className="text-xs uppercase tracking-[0.3em] text-emerald-600/70 dark:text-emerald-300/70">Disponibilidad</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleMonthShift(1)}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-slate-300 transition hover:border-emerald-500/40 hover:text-white"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-emerald-500/40 hover:text-emerald-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
                 >
                   <ChevronRight className="h-5 w-5" />
                 </button>
@@ -456,10 +455,10 @@ const BookingPage = () => {
                       onClick={() => selectable && handleSelectDate(date)}
                       className={`aspect-square rounded-xl border text-sm font-semibold transition ${
                         !selectable
-                          ? 'cursor-not-allowed border-slate-900/60 bg-slate-950/40 text-slate-700'
+                          ? 'cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300 dark:border-slate-900/60 dark:bg-slate-950/40 dark:text-slate-700'
                           : selected
-                          ? 'border-emerald-500/60 bg-emerald-500/20 text-white shadow-lg shadow-emerald-500/20'
-                          : 'border-slate-800/80 bg-slate-900/60 text-slate-200 hover:border-emerald-400/40 hover:text-white'
+                          ? 'border-emerald-500/60 bg-emerald-500/20 text-emerald-700 shadow-lg shadow-emerald-500/20 dark:text-white'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-400/40 hover:text-emerald-600 dark:border-slate-800/80 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:text-white'
                       }`}
                     >
                       {date.getDate()}
@@ -470,9 +469,9 @@ const BookingPage = () => {
             </section>
 
             <aside className="space-y-6">
-              <div className="rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 shadow-xl shadow-emerald-500/10">
-                <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
-                  <Clock className="h-5 w-5 text-emerald-300" /> Horarios disponibles
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-emerald-500/5 dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-emerald-500/10">
+                <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+                  <Clock className="h-5 w-5 text-emerald-600 dark:text-emerald-300" /> Horarios disponibles
                 </h3>
                 <p className="mt-1 text-xs uppercase tracking-[0.3em] text-slate-500">
                   {selectedBarbero?.nombre} · {selectedServicio?.nombre}
@@ -495,8 +494,8 @@ const BookingPage = () => {
                         onClick={() => setSelectedTime(slot)}
                         className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${
                           selectedTime === slot
-                            ? 'border-emerald-500/60 bg-emerald-500/20 text-white shadow-emerald-500/20'
-                            : 'border-slate-800/80 bg-slate-900/60 text-slate-200 hover:border-emerald-400/40 hover:text-white'
+                            ? 'border-emerald-500/60 bg-emerald-500/20 text-emerald-700 shadow-emerald-500/20 dark:text-white'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-400/40 hover:text-emerald-600 dark:border-slate-800/80 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:text-white'
                         }`}
                       >
                         {slot}
@@ -508,14 +507,14 @@ const BookingPage = () => {
               {selectedTime && (
                 <form
                   onSubmit={handleSubmit}
-                  className="space-y-5 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 shadow-xl shadow-emerald-500/10"
+                  className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-emerald-500/5 dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-emerald-500/10"
                 >
-                  <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
-                    <User className="h-5 w-5 text-emerald-300" /> Tus datos
+                  <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+                    <User className="h-5 w-5 text-emerald-600 dark:text-emerald-300" /> Tus datos
                   </h3>
                   <div className="space-y-4">
                     <label className="flex flex-col gap-2 text-sm">
-                      <span className="text-slate-300">Nombre completo</span>
+                      <span className="text-slate-600 dark:text-slate-300">Nombre completo</span>
                       <div className="relative">
                         <input
                           type="text"
@@ -524,14 +523,14 @@ const BookingPage = () => {
                             setFormData((prev) => ({ ...prev, nombre: event.target.value }))
                           }
                           required
-                          className="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 pl-11 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pl-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
                           placeholder="Juan Pérez"
                         />
                         <User className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-500" />
                       </div>
                     </label>
                     <label className="flex flex-col gap-2 text-sm">
-                      <span className="text-slate-300">Teléfono</span>
+                      <span className="text-slate-600 dark:text-slate-300">Teléfono</span>
                       <div className="relative">
                         <input
                           type="tel"
@@ -540,14 +539,14 @@ const BookingPage = () => {
                             setFormData((prev) => ({ ...prev, telefono: event.target.value }))
                           }
                           required
-                          className="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 pl-11 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pl-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
                           placeholder="614 123 4567"
                         />
                         <Phone className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-500" />
                       </div>
                     </label>
                     <label className="flex flex-col gap-2 text-sm">
-                      <span className="text-slate-300">Email (opcional)</span>
+                      <span className="text-slate-600 dark:text-slate-300">Email (opcional)</span>
                       <div className="relative">
                         <input
                           type="email"
@@ -555,7 +554,7 @@ const BookingPage = () => {
                           onChange={(event) =>
                             setFormData((prev) => ({ ...prev, email: event.target.value }))
                           }
-                          className="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 pl-11 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pl-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
                           placeholder="correo@ejemplo.com"
                         />
                         <Mail className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-500" />
@@ -581,36 +580,36 @@ const BookingPage = () => {
           <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-emerald-500/10">
             <Check className="h-12 w-12 text-emerald-300" />
           </div>
-          <h2 className="text-4xl font-bold text-white">¡Tu cita está confirmada!</h2>
-          <p className="text-slate-400">
+          <h2 className="text-4xl font-bold text-slate-900 dark:text-white">¡Tu cita está confirmada!</h2>
+          <p className="text-slate-600 dark:text-slate-400">
             Te hemos enviado un mensaje de WhatsApp con los detalles de tu reserva.
           </p>
 
-          <div className="rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 text-left shadow-xl shadow-emerald-500/10">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 text-left shadow-xl shadow-emerald-500/5 dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-emerald-500/10">
             <dl className="space-y-4 text-sm">
               <div className="flex items-center justify-between">
-                <dt className="text-slate-400">Barbero</dt>
-                <dd className="font-semibold text-white">{confirmation.barbero.nombre}</dd>
+                <dt className="text-slate-600 dark:text-slate-400">Profesional</dt>
+                <dd className="font-semibold text-slate-900 dark:text-white">{confirmation.barbero.nombre}</dd>
               </div>
               <div className="flex items-center justify-between">
-                <dt className="text-slate-400">Servicio</dt>
-                <dd className="font-semibold text-white">{confirmation.servicio.nombre}</dd>
+                <dt className="text-slate-600 dark:text-slate-400">Servicio</dt>
+                <dd className="font-semibold text-slate-900 dark:text-white">{confirmation.servicio.nombre}</dd>
               </div>
               <div className="flex items-center justify-between">
-                <dt className="text-slate-400">Duración</dt>
-                <dd className="font-semibold text-white">{confirmation.servicio.duracion} min</dd>
+                <dt className="text-slate-600 dark:text-slate-400">Duración</dt>
+                <dd className="font-semibold text-slate-900 dark:text-white">{confirmation.servicio.duracion} min</dd>
               </div>
               <div className="flex items-center justify-between">
-                <dt className="text-slate-400">Fecha</dt>
-                <dd className="font-semibold text-white">{confirmation.fecha}</dd>
+                <dt className="text-slate-600 dark:text-slate-400">Fecha</dt>
+                <dd className="font-semibold text-slate-900 dark:text-white">{confirmation.fecha}</dd>
               </div>
               <div className="flex items-center justify-between">
-                <dt className="text-slate-400">Hora</dt>
-                <dd className="font-semibold text-white">{confirmation.hora}</dd>
+                <dt className="text-slate-600 dark:text-slate-400">Hora</dt>
+                <dd className="font-semibold text-slate-900 dark:text-white">{confirmation.hora}</dd>
               </div>
-              <div className="flex items-center justify-between border-t border-slate-800 pt-4">
-                <dt className="text-slate-400">Total</dt>
-                <dd className="text-xl font-bold text-emerald-300">
+              <div className="flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-800">
+                <dt className="text-slate-600 dark:text-slate-400">Total</dt>
+                <dd className="text-xl font-bold text-emerald-600 dark:text-emerald-300">
                   {formatCurrency(confirmation.servicio.precio)}
                 </dd>
               </div>
@@ -620,7 +619,7 @@ const BookingPage = () => {
           <button
             type="button"
             onClick={resetBooking}
-            className="rounded-2xl border border-slate-700 px-6 py-3 text-sm font-semibold text-white transition hover:border-emerald-400 hover:bg-slate-900"
+            className="rounded-2xl border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-emerald-400 hover:bg-slate-50 dark:border-slate-700 dark:text-white dark:hover:bg-slate-900"
           >
             Agendar otra cita
           </button>

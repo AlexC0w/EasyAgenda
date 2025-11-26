@@ -45,7 +45,7 @@ const LoginPage = () => {
         </div>
         <div>
           <h2 className="text-2xl font-semibold text-white">Acceso administrativo</h2>
-          <p className="mt-1 text-sm text-slate-400">Ingresa con tu cuenta de administrador o barbero.</p>
+          <p className="mt-1 text-sm text-slate-400">Ingresa con tu cuenta de administrador o colaborador.</p>
         </div>
       </div>
       <form onSubmit={handleSubmit} className="space-y-5">

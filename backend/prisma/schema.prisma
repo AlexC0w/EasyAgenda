@@ -7,6 +7,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Business {
+  id        Int      @id @default(autoincrement())
+  name      String
+  slug      String   @unique
+  giro      String   @default("Barbería")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+  barberos  Barbero[]
+  servicios Servicio[]
+  citas     Cita[]
+  settings  BusinessSetting[]
+}
+
 model Barbero {
   id             Int      @id @default(autoincrement())
   nombre         String
@@ -17,8 +32,14 @@ model Barbero {
   citas          Cita[]
   userId         Int?     @unique
   user           User?    @relation(fields: [userId], references: [id])
+  
+  businessId     Int      @default(1) // Temporary default for migration
+  business       Business @relation(fields: [businessId], references: [id])
+
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  @@index([businessId])
 }
 
 model Servicio {
@@ -27,8 +48,14 @@ model Servicio {
   duracion  Int
   precio    Decimal   @db.Decimal(10, 2)
   citas     Cita[]
+  
+  businessId     Int      @default(1)
+  business       Business @relation(fields: [businessId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([businessId])
 }
 
 model Cita {
@@ -46,30 +73,45 @@ model Cita {
 
   barbero  Barbero @relation(fields: [barbero_id], references: [id])
   servicio Servicio @relation(fields: [servicio_id], references: [id])
+  
+  businessId     Int      @default(1)
+  business       Business @relation(fields: [businessId], references: [id])
 
   @@index([barbero_id, fecha])
+  @@index([businessId])
 }
 
 model User {
   id             Int      @id @default(autoincrement())
   username       String   @unique
   passwordHash   String
-  passwordPlain  String
+  passwordPlain  String   // TODO: Remove in production
   telefono       String?
   role           UserRole @default(BARBER)
   barbero        Barbero?
+  
+  businessId     Int      @default(1)
+  business       Business @relation(fields: [businessId], references: [id])
+
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   @@index([role])
+  @@index([businessId])
 }
 
 model BusinessSetting {
   id        Int      @id @default(autoincrement())
-  key       String   @unique
+  key       String
   value     String
+  
+  businessId     Int      @default(1)
+  business       Business @relation(fields: [businessId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([businessId, key]) // Key is unique per business
 }
 
 enum UserRole {

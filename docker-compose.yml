@@ -31,5 +31,13 @@ services:
     volumes:
       - ./backend/prisma:/app/prisma
 
+  frontend:
+    build: ./frontend
+    restart: always
+    ports:
+      - '80:80'
+    depends_on:
+      - backend
+
 volumes:
   mariadb_data:

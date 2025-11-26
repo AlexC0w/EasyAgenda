@@ -27,6 +27,7 @@ export const authenticate = async (req, res, next) => {
       username: user.username,
       role: user.role,
       telefono: user.telefono,
+      businessId: user.businessId,
       barberoId: barbero?.id || null,
     };
 
@@ -34,6 +35,38 @@ export const authenticate = async (req, res, next) => {
   } catch (error) {
     console.error(error);
     return res.status(401).json({ message: 'Token inválido o expirado' });
+  }
+};
+
+export const optionalAuthenticate = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return next();
+  }
+
+  const [, token] = authHeader.split(' ');
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const payload = verifyToken(token);
+    const user = await prisma.user.findUnique({ where: { id: payload.sub } });
+    if (user) {
+      const barbero = await prisma.barbero.findFirst({ where: { userId: user.id } });
+      req.user = {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        telefono: user.telefono,
+        businessId: user.businessId,
+        barberoId: barbero?.id || null,
+      };
+    }
+    next();
+  } catch (error) {
+    // Ignore errors in optional auth
+    next();
   }
 };
 

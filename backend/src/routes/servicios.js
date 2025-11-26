@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
-import { authenticate, requireRole } from '../middleware/auth.js';
+import { authenticate, requireRole, optionalAuthenticate } from '../middleware/auth.js';
+import { resolveTenant } from '../middleware/tenant.js';
 
 const router = Router();
 
@@ -36,9 +37,15 @@ const parseServicePayload = (body) => {
   };
 };
 
-router.get('/', async (req, res, next) => {
+router.get('/', optionalAuthenticate, resolveTenant, async (req, res, next) => {
   try {
-    const servicios = await prisma.servicio.findMany({ orderBy: { nombre: 'asc' } });
+    if (!req.businessId) {
+        return res.status(400).json({ message: 'Se requiere especificar el negocio (slug).' });
+    }
+    const servicios = await prisma.servicio.findMany({ 
+        where: { businessId: req.businessId },
+        orderBy: { nombre: 'asc' } 
+    });
     res.json(servicios.map(serializeService));
   } catch (error) {
     next(error);
@@ -48,7 +55,12 @@ router.get('/', async (req, res, next) => {
 router.post('/', authenticate, requireRole('ADMIN'), async (req, res, next) => {
   try {
     const payload = parseServicePayload(req.body);
-    const servicio = await prisma.servicio.create({ data: payload });
+    const servicio = await prisma.servicio.create({ 
+        data: {
+            ...payload,
+            businessId: req.user.businessId
+        } 
+    });
     res.status(201).json(serializeService(servicio));
   } catch (error) {
     if (error.message?.includes('obligatorio') || error.message?.includes('número')) {
@@ -62,6 +74,13 @@ router.put('/:id', authenticate, requireRole('ADMIN'), async (req, res, next) =>
   try {
     const { id } = req.params;
     const payload = parseServicePayload(req.body);
+    
+    // Check ownership
+    const existing = await prisma.servicio.findUnique({ where: { id: Number(id) } });
+    if (!existing || existing.businessId !== req.user.businessId) {
+        return res.status(404).json({ message: 'Servicio no encontrado.' });
+    }
+
     const servicio = await prisma.servicio.update({ where: { id: Number(id) }, data: payload });
     res.json(serializeService(servicio));
   } catch (error) {
@@ -78,6 +97,13 @@ router.put('/:id', authenticate, requireRole('ADMIN'), async (req, res, next) =>
 router.delete('/:id', authenticate, requireRole('ADMIN'), async (req, res, next) => {
   try {
     const { id } = req.params;
+    
+    // Check ownership
+    const existing = await prisma.servicio.findUnique({ where: { id: Number(id) } });
+    if (!existing || existing.businessId !== req.user.businessId) {
+        return res.status(404).json({ message: 'Servicio no encontrado.' });
+    }
+
     await prisma.servicio.delete({ where: { id: Number(id) } });
     res.status(204).send();
   } catch (error) {

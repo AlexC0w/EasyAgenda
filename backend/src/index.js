@@ -10,6 +10,7 @@ import citasRouter from './routes/citas.js';
 import disponiblesRouter from './routes/disponibles.js';
 import serviciosRouter from './routes/servicios.js';
 import usersRouter from './routes/users.js';
+import publicRouter from './routes/public.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import reminderJob from './jobs/reminderJob.js';
 
@@ -31,11 +32,12 @@ app.use('/servicios', serviciosRouter);
 app.use('/citas', citasRouter);
 app.use('/users', usersRouter);
 app.use('/business', businessRouter);
+app.use('/public', publicRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
 });
 

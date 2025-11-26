@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma.js';
-import { authenticate, requireRole } from '../middleware/auth.js';
+import { authenticate, requireRole, optionalAuthenticate } from '../middleware/auth.js';
+import { resolveTenant } from '../middleware/tenant.js';
 
 const router = Router();
 
@@ -56,9 +57,15 @@ const buildPayload = (body) => {
   };
 };
 
-router.get('/', async (req, res, next) => {
+router.get('/', optionalAuthenticate, resolveTenant, async (req, res, next) => {
   try {
-    const barberos = await prisma.barbero.findMany({ orderBy: { nombre: 'asc' } });
+    if (!req.businessId) {
+        return res.status(400).json({ message: 'Se requiere especificar el negocio (slug).' });
+    }
+    const barberos = await prisma.barbero.findMany({ 
+        where: { businessId: req.businessId },
+        orderBy: { nombre: 'asc' } 
+    });
     res.json(barberos.map(serializeBarbero));
   } catch (error) {
     next(error);
@@ -72,6 +79,7 @@ router.post('/', authenticate, requireRole('ADMIN'), async (req, res, next) => {
       data: {
         ...payload,
         userId: req.body.userId ? Number(req.body.userId) : null,
+        businessId: req.user.businessId,
       },
     });
     res.status(201).json(serializeBarbero(barbero));
@@ -87,6 +95,13 @@ router.put('/:id', authenticate, requireRole('ADMIN'), async (req, res, next) =>
   try {
     const { id } = req.params;
     const payload = buildPayload(req.body);
+    
+    // Check ownership
+    const existing = await prisma.barbero.findUnique({ where: { id: Number(id) } });
+    if (!existing || existing.businessId !== req.user.businessId) {
+        return res.status(404).json({ message: 'Barbero no encontrado.' });
+    }
+
     const barbero = await prisma.barbero.update({
       where: { id: Number(id) },
       data: {
@@ -109,6 +124,13 @@ router.put('/:id', authenticate, requireRole('ADMIN'), async (req, res, next) =>
 router.delete('/:id', authenticate, requireRole('ADMIN'), async (req, res, next) => {
   try {
     const { id } = req.params;
+    
+    // Check ownership
+    const existing = await prisma.barbero.findUnique({ where: { id: Number(id) } });
+    if (!existing || existing.businessId !== req.user.businessId) {
+        return res.status(404).json({ message: 'Barbero no encontrado.' });
+    }
+
     await prisma.barbero.delete({ where: { id: Number(id) } });
     res.status(204).send();
   } catch (error) {

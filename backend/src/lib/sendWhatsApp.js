@@ -22,13 +22,18 @@ const normalizePhoneNumber = (input) => {
   return digits;
 };
 
-const sendWhatsApp = async (to, message) => {
+const sendWhatsApp = async (to, message, settings = {}) => {
   const { WHATSAPP_API_URL, WHATSAPP_API_KEY } = process.env;
   const number = normalizePhoneNumber(to);
 
   if (!WHATSAPP_API_URL || !WHATSAPP_API_KEY) {
     console.log(`Mensaje WhatsApp simulado para ${to}: ${message}`);
     return { simulated: true, number: to };
+  }
+
+  if (settings && settings.whatsappSender === '') {
+    console.warn('WhatsApp no configurado para este negocio.');
+    return { success: false, error: 'WhatsApp no configurado en este negocio.', number: to };
   }
 
   if (!number) {
@@ -39,7 +44,13 @@ const sendWhatsApp = async (to, message) => {
   try {
     const response = await axios.post(
       WHATSAPP_API_URL,
-      { number, body: message },
+      { 
+        number, 
+        body: message,
+        sender: settings?.whatsappSender,
+        instanceId: settings?.whatsappSender,
+        sessionId: settings?.whatsappSender
+      },
       {
         headers: {
           Authorization: `Bearer ${WHATSAPP_API_KEY}`,
@@ -59,11 +70,20 @@ const sendWhatsApp = async (to, message) => {
     const details = error.response?.data || error.message;
     console.error('Error enviando WhatsApp', { status, details });
 
+    let errorType = 'UNKNOWN';
+    let errorMessage = details?.message || details;
+    
+    if (JSON.stringify(details).includes('Nenhum número de Whatsapp foi configurado')) {
+      errorType = 'PROVIDER_NOT_CONFIGURED';
+      errorMessage = 'No se pudo enviar el mensaje por falta de configuración.';
+    }
+
     return {
       success: false,
       number,
       status,
-      error: details?.message || details,
+      error: errorMessage,
+      errorType,
       response: details,
     };
   }

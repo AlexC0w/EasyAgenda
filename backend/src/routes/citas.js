@@ -8,12 +8,15 @@ import {
 } from '../validators/appointmentValidator.js';
 import { getAvailability, isSlotAvailable } from '../services/availabilityService.js';
 import { authenticate } from '../middleware/auth.js';
+import { resolveTenant } from '../middleware/tenant.js';
 
 const router = Router();
 
 router.get('/', authenticate, async (req, res, next) => {
   try {
-    const where = {};
+    const where = {
+        businessId: req.user.businessId
+    };
     if (req.user.role === 'BARBER') {
       if (!req.user.barberoId) {
         return res.status(403).json({ message: 'Tu cuenta no está vinculada a un barbero.' });
@@ -39,8 +42,14 @@ router.get('/:barberoId', authenticate, async (req, res, next) => {
       return res.status(403).json({ message: 'No autorizado a ver las citas de otros barberos.' });
     }
 
+    // Verify barbero belongs to business
+    const barbero = await prisma.barbero.findUnique({ where: { id: barberoId } });
+    if (!barbero || barbero.businessId !== req.user.businessId) {
+        return res.status(404).json({ message: 'Barbero no encontrado.' });
+    }
+
     const citas = await prisma.cita.findMany({
-      where: { barbero_id: barberoId },
+      where: { barbero_id: barberoId, businessId: req.user.businessId },
       include: { barbero: true, servicio: true },
       orderBy: [{ fecha: 'asc' }, { hora: 'asc' }],
     });
@@ -50,19 +59,23 @@ router.get('/:barberoId', authenticate, async (req, res, next) => {
   }
 });
 
-router.post('/', createAppointmentValidator, validateRequest, async (req, res, next) => {
+router.post('/', resolveTenant, createAppointmentValidator, validateRequest, async (req, res, next) => {
   try {
     const { barberoId, servicioId, cliente, telefono, fecha, hora } = req.body;
+    
+    if (!req.businessId) {
+        return res.status(400).json({ message: 'Se requiere especificar el negocio.' });
+    }
 
     const [barbero, servicio] = await Promise.all([
       prisma.barbero.findUnique({ where: { id: Number(barberoId) } }),
       prisma.servicio.findUnique({ where: { id: Number(servicioId) } }),
     ]);
 
-    if (!barbero) {
+    if (!barbero || barbero.businessId !== req.businessId) {
       return res.status(404).json({ message: 'Barbero no encontrado' });
     }
-    if (!servicio) {
+    if (!servicio || servicio.businessId !== req.businessId) {
       return res.status(404).json({ message: 'Servicio no encontrado' });
     }
 
@@ -81,6 +94,7 @@ router.post('/', createAppointmentValidator, validateRequest, async (req, res, n
       data: {
         barbero: { connect: { id: barbero.id } },
         servicio: { connect: { id: servicio.id } },
+        business: { connect: { id: req.businessId } },
         cliente,
         telefono,
         fecha: new Date(`${fecha}T00:00:00`),
@@ -90,9 +104,33 @@ router.post('/', createAppointmentValidator, validateRequest, async (req, res, n
       include: { barbero: true, servicio: true },
     });
 
+    const settings = await prisma.businessSetting.findMany({
+      where: { businessId: req.businessId }
+    });
+    const settingsMap = settings.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {});
+
     const message = `¡Hola ${cliente}! Tu cita con ${cita.barbero.nombre} para ${cita.servicio.nombre} está confirmada el ${fecha} a las ${hora}.`;
 
-    const whatsappResult = await sendWhatsApp(telefono, message);
+    const whatsappResult = await sendWhatsApp(telefono, message, settingsMap);
+    
+    // If provider is not configured, flag it for the admin
+    if (whatsappResult?.errorType === 'PROVIDER_NOT_CONFIGURED') {
+      await prisma.businessSetting.upsert({
+        where: {
+          businessId_key: {
+            businessId: req.businessId,
+            key: 'whatsapp_pending_setup'
+          }
+        },
+        update: { value: 'true' },
+        create: {
+          businessId: req.businessId,
+          key: 'whatsapp_pending_setup',
+          value: 'true'
+        }
+      });
+    }
+
     const whatsappError =
       whatsappResult?.success === false
         ? whatsappResult.error || 'No se pudo enviar el mensaje de WhatsApp.'
@@ -116,7 +154,7 @@ router.patch('/:id', authenticate, updateAppointmentValidator, validateRequest, 
     const { estado, fecha, hora } = req.body;
 
     const cita = await prisma.cita.findUnique({ where: { id: Number(id) }, include: { servicio: true } });
-    if (!cita) {
+    if (!cita || cita.businessId !== req.user.businessId) {
       return res.status(404).json({ message: 'Cita no encontrada' });
     }
 

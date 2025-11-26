@@ -24,11 +24,84 @@ const serializeUser = (user) => {
     role: user.role,
     telefono: user.telefono,
     password: user.passwordPlain,
+    businessId: user.businessId,
+    businessSlug: user.business?.slug,
+    businessGiro: user.business?.giro,
     barberoId: barberoProfile?.id ?? null,
     barberoNombre: barberoProfile?.nombre ?? null,
     barberoProfile,
   };
 };
+
+router.post('/register-business', async (req, res, next) => {
+  try {
+    const { businessName, slug, username, password, telefono, giro } = req.body;
+
+    if (!businessName || !slug || !username || !password) {
+      return res.status(400).json({ message: 'Todos los campos son requeridos.' });
+    }
+
+    const existingSlug = await prisma.business.findUnique({ where: { slug } });
+    if (existingSlug) {
+      return res.status(409).json({ message: 'El slug del negocio ya está en uso.' });
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { username } });
+    if (existingUser) {
+      return res.status(409).json({ message: 'El nombre de usuario ya está en uso.' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const result = await prisma.$transaction(async (tx) => {
+      const business = await tx.business.create({
+        data: {
+          name: businessName,
+          slug,
+          giro: giro || 'Barbería',
+        },
+      });
+
+      const user = await tx.user.create({
+        data: {
+          username,
+          passwordHash,
+          passwordPlain: password, // TODO: Remove in production
+          telefono,
+          role: 'ADMIN',
+          businessId: business.id,
+        },
+      });
+      
+      // Create default settings
+      await tx.businessSetting.createMany({
+        data: [
+            { key: 'businessName', value: businessName, businessId: business.id },
+            { key: 'businessPhone', value: telefono || '', businessId: business.id },
+            { key: 'businessAddress', value: '', businessId: business.id },
+            { key: 'whatsappSender', value: '', businessId: business.id },
+        ]
+      });
+
+      return { business, user };
+    });
+
+    const token = signToken({ 
+        sub: result.user.id, 
+        role: result.user.role, 
+        username: result.user.username,
+        businessId: result.business.id 
+    });
+
+    res.status(201).json({
+      token,
+      user: serializeUser({ ...result.user, business: result.business }),
+    });
+
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.post('/login', async (req, res, next) => {
   try {
@@ -37,7 +110,11 @@ router.post('/login', async (req, res, next) => {
       return res.status(400).json({ message: 'Usuario y contraseña son requeridos.' });
     }
 
-    const user = await prisma.user.findUnique({ where: { username }, include: { barbero: true } });
+    const user = await prisma.user.findUnique({ 
+        where: { username }, 
+        include: { barbero: true, business: true } 
+    });
+    
     if (!user) {
       return res.status(401).json({ message: 'Credenciales inválidas.' });
     }
@@ -47,7 +124,12 @@ router.post('/login', async (req, res, next) => {
       return res.status(401).json({ message: 'Credenciales inválidas.' });
     }
 
-    const token = signToken({ sub: user.id, role: user.role, username: user.username });
+    const token = signToken({ 
+        sub: user.id, 
+        role: user.role, 
+        username: user.username,
+        businessId: user.businessId
+    });
 
     res.json({
       token,
@@ -60,7 +142,10 @@ router.post('/login', async (req, res, next) => {
 
 router.get('/me', authenticate, async (req, res, next) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: req.user.id }, include: { barbero: true } });
+    const user = await prisma.user.findUnique({ 
+        where: { id: req.user.id }, 
+        include: { barbero: true, business: true } 
+    });
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
