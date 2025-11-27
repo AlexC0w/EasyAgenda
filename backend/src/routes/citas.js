@@ -193,7 +193,7 @@ router.post('/:id/confirm', async (req, res, next) => {
     const updated = await prisma.cita.update({
       where: { id: Number(id) },
       data: { estado: 'confirmada' },
-      include: { barbero: true, servicio: true }
+      include: { barbero: true, servicio: true, business: true }
     });
 
     res.json({ message: 'Cita confirmada exitosamente', cita: updated });

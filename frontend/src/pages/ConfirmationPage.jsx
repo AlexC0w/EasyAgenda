@@ -102,10 +102,10 @@ const ConfirmationPage = () => {
 
         <div className="pt-4">
             <Link 
-                to="/"
+                to={cita?.business?.slug ? `/${cita.business.slug}` : '/'}
                 className="block w-full rounded-xl bg-slate-900 py-3 text-center text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
             >
-                Ir al inicio
+                Volver a la Agenda
             </Link>
         </div>
       </div>
