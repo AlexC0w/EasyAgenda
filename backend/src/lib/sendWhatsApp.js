@@ -27,39 +27,53 @@ const sendWhatsApp = async (to, message, settings = {}) => {
   const token = settings?.whatsappToken || WHATSAPP_API_KEY;
   const number = normalizePhoneNumber(to);
 
+  console.log('--- [WhatsApp Debug] Start ---');
+  console.log('To (Original):', to);
+  console.log('To (Normalized):', number);
+  console.log('API URL:', WHATSAPP_API_URL);
+  console.log('Token Present:', !!token);
+  console.log('Settings:', JSON.stringify(settings, null, 2));
+
   if (!WHATSAPP_API_URL || !token) {
+    console.log('--- [WhatsApp Debug] Simulated (Missing Config) ---');
     console.log(`Mensaje WhatsApp simulado para ${to}: ${message}`);
     return { simulated: true, number: to };
   }
 
   if (settings && settings.whatsappSender === '') {
-    console.warn('WhatsApp no configurado para este negocio.');
+    console.warn('--- [WhatsApp Debug] Warning: Sender not configured ---');
     return { success: false, error: 'WhatsApp no configurado en este negocio.', number: to };
   }
 
   if (!number) {
-    console.warn('Número de WhatsApp inválido o vacío:', to);
+    console.warn('--- [WhatsApp Debug] Invalid Number ---');
     return { success: false, error: 'Número de teléfono inválido', number: to };
   }
 
   try {
+    const payload = { 
+        number, 
+        body: message
+    };
+    
+    console.log('--- [WhatsApp Debug] Sending Request ---');
+    console.log('URL:', WHATSAPP_API_URL);
+    console.log('Payload:', JSON.stringify(payload, null, 2));
+
     const response = await axios.post(
       WHATSAPP_API_URL,
-      { 
-        number, 
-        body: message,
-        sender: settings?.whatsappSender,
-        instanceId: settings?.whatsappSender,
-        sessionId: settings?.whatsappSender
-      },
+      payload,
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
+          'Content-Type': 'application/json'
         },
       }
     );
+
+    console.log('--- [WhatsApp Debug] Success Response ---');
+    console.log('Status:', response.status);
+    console.log('Data:', JSON.stringify(response.data, null, 2));
 
     return {
       success: true,
@@ -69,7 +83,10 @@ const sendWhatsApp = async (to, message, settings = {}) => {
   } catch (error) {
     const status = error.response?.status;
     const details = error.response?.data || error.message;
-    console.error('Error enviando WhatsApp', { status, details });
+    
+    console.error('--- [WhatsApp Debug] Error ---');
+    console.error('Status:', status);
+    console.error('Details:', JSON.stringify(details, null, 2));
 
     let errorType = 'UNKNOWN';
     let errorMessage = details?.message || details;

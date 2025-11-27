@@ -60,8 +60,16 @@ router.get('/:barberoId', authenticate, async (req, res, next) => {
 });
 
 router.post('/', resolveTenant, createAppointmentValidator, validateRequest, async (req, res, next) => {
+  console.log('--- [Backend Debug] POST /citas HIT ---');
   try {
-    const { barberoId, servicioId, cliente, telefono, fecha, hora } = req.body;
+    let { barberoId, servicioId, cliente, telefono, fecha, hora } = req.body;
+    
+    // Sanitize phone number
+    telefono = telefono.replace(/\D/g, '');
+    // Fallback: If number is 10 digits (Mexico local), add country code 52
+    if (telefono.length === 10) {
+        telefono = '52' + telefono;
+    }
     
     if (!req.businessId) {
         return res.status(400).json({ message: 'Se requiere especificar el negocio.' });

@@ -232,7 +232,7 @@ const BookingPage = () => {
         barberoId: Number(selectedBarbero.id),
         servicioId: Number(selectedServicio.id),
         cliente: formData.nombre,
-        telefono: formData.telefono,
+        telefono: (formData.countryCode || '52') + formData.telefono,
         fecha: selectedDate,
         hora: selectedTime,
         slug,
@@ -505,7 +505,7 @@ const BookingPage = () => {
               </div>
 
               {selectedTime && (
-                <form
+                  <form
                   onSubmit={handleSubmit}
                   className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-emerald-500/5 dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-emerald-500/10"
                 >
@@ -530,19 +530,34 @@ const BookingPage = () => {
                       </div>
                     </label>
                     <label className="flex flex-col gap-2 text-sm">
-                      <span className="text-slate-600 dark:text-slate-300">Teléfono</span>
-                      <div className="relative">
-                        <input
-                          type="tel"
-                          value={formData.telefono}
-                          onChange={(event) =>
-                            setFormData((prev) => ({ ...prev, telefono: event.target.value }))
-                          }
-                          required
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pl-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
-                          placeholder="614 123 4567"
-                        />
-                        <Phone className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-500" />
+                      <span className="text-slate-600 dark:text-slate-300">Teléfono (WhatsApp)</span>
+                      <div className="flex gap-2">
+                        <select
+                          value={formData.countryCode || '52'}
+                          onChange={(e) => setFormData(prev => ({ ...prev, countryCode: e.target.value }))}
+                          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                        >
+                          <option value="52">🇲🇽 +52</option>
+                          <option value="1">🇺🇸 +1</option>
+                          <option value="34">🇪🇸 +34</option>
+                          <option value="54">🇦🇷 +54</option>
+                          <option value="57">🇨🇴 +57</option>
+                          <option value="56">🇨🇱 +56</option>
+                          <option value="51">🇵🇪 +51</option>
+                        </select>
+                        <div className="relative flex-1">
+                          <input
+                            type="tel"
+                            value={formData.telefono}
+                            onChange={(event) =>
+                              setFormData((prev) => ({ ...prev, telefono: event.target.value.replace(/\D/g, '') }))
+                            }
+                            required
+                            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pl-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
+                            placeholder="614 123 4567"
+                          />
+                          <Phone className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-500" />
+                        </div>
                       </div>
                     </label>
                     <label className="flex flex-col gap-2 text-sm">
