@@ -7,6 +7,7 @@ import AdminPage from './pages/AdminPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import LandingPage from './pages/LandingPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
+import ConfirmationPage from './pages/ConfirmationPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { useAuth } from './context/AuthContext.jsx';
 
@@ -97,8 +98,9 @@ const AppShell = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/confirmar-cita/:id" element={<ConfirmationPage />} />
           <Route
-            path="/admin"
+            path="/admin/*"
             element={
               <ProtectedRoute roles={['ADMIN', 'BARBER']}>
                 <AdminPage />

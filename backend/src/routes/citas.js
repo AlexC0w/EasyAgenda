@@ -76,7 +76,10 @@ router.post('/', resolveTenant, createAppointmentValidator, validateRequest, asy
     }
 
     const [barbero, servicio] = await Promise.all([
-      prisma.barbero.findUnique({ where: { id: Number(barberoId) } }),
+      prisma.barbero.findUnique({ 
+        where: { id: Number(barberoId) },
+        include: { user: true }
+      }),
       prisma.servicio.findUnique({ where: { id: Number(servicioId) } }),
     ]);
 
@@ -107,7 +110,7 @@ router.post('/', resolveTenant, createAppointmentValidator, validateRequest, asy
         telefono,
         fecha: new Date(`${fecha}T00:00:00`),
         hora,
-        estado: 'confirmada',
+        estado: 'pendiente', 
       },
       include: { barbero: true, servicio: true },
     });
@@ -117,10 +120,28 @@ router.post('/', resolveTenant, createAppointmentValidator, validateRequest, asy
     });
     const settingsMap = settings.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {});
 
-    const message = `¡Hola ${cliente}! Tu cita con ${cita.barbero.nombre} para ${cita.servicio.nombre} está confirmada el ${fecha} a las ${hora}.`;
-
-    const whatsappResult = await sendWhatsApp(telefono, message, settingsMap);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const confirmLink = `${frontendUrl}/confirmar-cita/${cita.id}`;
     
+    // 1. Send message to Client
+    const clientMessage = `¡Hola ${cliente}! Tu cita con ${cita.barbero.nombre} para ${cita.servicio.nombre} el ${fecha} a las ${hora} está PENDIENTE. Para confirmarla, por favor haz clic aquí: ${confirmLink}`;
+    const whatsappResult = await sendWhatsApp(telefono, clientMessage, settingsMap);
+    
+    // 2. Send message to Barber (if phone exists)
+    if (barbero.user && barbero.user.telefono) {
+        let barberPhone = barbero.user.telefono.replace(/\D/g, '');
+        if (barberPhone.length === 10) {
+            barberPhone = '52' + barberPhone;
+        }
+        
+        const barberMessage = `📅 Nueva Cita Agendada\n\nCliente: ${cliente}\nServicio: ${cita.servicio.nombre}\nFecha: ${fecha}\nHora: ${hora}\n\nRevisa tu agenda aquí: ${frontendUrl}/admin`;
+        
+        // We don't block the response if this fails, just log it
+        sendWhatsApp(barberPhone, barberMessage, settingsMap).catch(err => 
+            console.error('Error sending WhatsApp to barber:', err)
+        );
+    }
+
     // If provider is not configured, flag it for the admin
     if (whatsappResult?.errorType === 'PROVIDER_NOT_CONFIGURED') {
       await prisma.businessSetting.upsert({
@@ -141,7 +162,7 @@ router.post('/', resolveTenant, createAppointmentValidator, validateRequest, asy
 
     const whatsappError =
       whatsappResult?.success === false
-        ? whatsappResult.error || 'No se pudo enviar el mensaje de WhatsApp.'
+        ? whatsappResult.error || 'No se pudo enviar el mensaje de WhatsApp al cliente.'
         : null;
 
     res.status(201).json({
@@ -151,6 +172,31 @@ router.post('/', resolveTenant, createAppointmentValidator, validateRequest, asy
       whatsappNumber: whatsappResult?.number ?? telefono,
       whatsappResponse: whatsappResult?.response ?? null,
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/:id/confirm', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const cita = await prisma.cita.findUnique({ where: { id: Number(id) } });
+
+    if (!cita) {
+      return res.status(404).json({ message: 'Cita no encontrada' });
+    }
+
+    if (cita.estado === 'confirmada') {
+      return res.json({ message: 'La cita ya estaba confirmada.', cita });
+    }
+
+    const updated = await prisma.cita.update({
+      where: { id: Number(id) },
+      data: { estado: 'confirmada' },
+      include: { barbero: true, servicio: true }
+    });
+
+    res.json({ message: 'Cita confirmada exitosamente', cita: updated });
   } catch (error) {
     next(error);
   }

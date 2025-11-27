@@ -2,6 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../lib/prisma.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
+import sendWhatsApp from '../lib/sendWhatsApp.js';
 
 const router = Router();
 
@@ -130,6 +131,36 @@ router.post('/', async (req, res, next) => {
       },
       include: { barbero: true },
     });
+
+    // Send WhatsApp with credentials if phone is provided
+    if (telefono) {
+      try {
+        const [business, settings] = await Promise.all([
+          prisma.business.findUnique({ where: { id: req.user.businessId } }),
+          prisma.businessSetting.findMany({ where: { businessId: req.user.businessId } })
+        ]);
+
+        const settingsMap = settings.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {});
+        const businessName = business?.name || 'EasyAgenda';
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const loginLink = `${frontendUrl}/login`;
+
+        let userPhone = telefono.replace(/\D/g, '');
+        if (userPhone.length === 10) {
+          userPhone = '52' + userPhone;
+        }
+
+        const message = `Hola, te damos la bienvenida a *${businessName}*.\n\nTus credenciales de acceso son:\nUsuario: ${username}\nContraseña: ${password}\n\nIngresa aquí: ${loginLink}`;
+
+        // Don't block response
+        sendWhatsApp(userPhone, message, settingsMap).catch(err => 
+          console.error('Error sending credentials via WhatsApp:', err)
+        );
+
+      } catch (err) {
+        console.error('Error preparing WhatsApp credentials message:', err);
+      }
+    }
 
     res.status(201).json(serializeUser(user));
   } catch (error) {
