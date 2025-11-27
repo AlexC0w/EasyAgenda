@@ -24,9 +24,10 @@ const normalizePhoneNumber = (input) => {
 
 const sendWhatsApp = async (to, message, settings = {}) => {
   const { WHATSAPP_API_URL, WHATSAPP_API_KEY } = process.env;
+  const token = settings?.whatsappToken || WHATSAPP_API_KEY;
   const number = normalizePhoneNumber(to);
 
-  if (!WHATSAPP_API_URL || !WHATSAPP_API_KEY) {
+  if (!WHATSAPP_API_URL || !token) {
     console.log(`Mensaje WhatsApp simulado para ${to}: ${message}`);
     return { simulated: true, number: to };
   }
@@ -53,7 +54,7 @@ const sendWhatsApp = async (to, message, settings = {}) => {
       },
       {
         headers: {
-          Authorization: `Bearer ${WHATSAPP_API_KEY}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },

@@ -23,8 +23,14 @@ const job = cron.schedule('*/5 * * * *', async () => {
         const citaDateTime = new Date(`${cita.fecha.toISOString().split('T')[0]}T${cita.hora}:00`);
         const diff = citaDateTime.getTime() - inOneHour.getTime();
         if (Math.abs(diff) <= 5 * 60 * 1000) {
+          // Fetch settings for this business
+          const settings = await prisma.businessSetting.findMany({
+            where: { businessId: cita.businessId }
+          });
+          const settingsMap = settings.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {});
+
           const message = `¡Hola ${cita.cliente}! Te recordamos tu cita con ${cita.barbero.nombre} para ${cita.servicio.nombre} a las ${cita.hora}.`;
-          await sendWhatsApp(cita.telefono, message);
+          await sendWhatsApp(cita.telefono, message, settingsMap);
           await prisma.cita.update({
             where: { id: cita.id },
             data: { recordatorioEnviado: true },

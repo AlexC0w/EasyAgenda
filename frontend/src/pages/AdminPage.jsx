@@ -81,6 +81,7 @@ const defaultBusiness = {
   businessPhone: '',
   businessAddress: '',
   whatsappSender: '',
+  whatsappToken: '',
 };
 
 const AdminPage = () => {
@@ -1718,6 +1719,29 @@ const AdminPage = () => {
                   className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   placeholder="+52 555 010 8888"
                 />
+              </div>
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-widest text-slate-600 dark:text-slate-400">Token de WhatsApp (GratbeLabs)</label>
+                <div className="relative mt-2">
+                    <input
+                    type={showPasswords ? "text" : "password"}
+                    name="whatsappToken"
+                    value={business.whatsappToken || ''}
+                    onChange={handleBusinessChange}
+                    placeholder="Pegar token aquí..."
+                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowPasswords(!showPasswords)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                    >
+                        {showPasswords ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                </div>
+                <p className="mt-1 text-[10px] text-slate-400">
+                  Token de autenticación proporcionado por GratbeLabs. Necesario para enviar mensajes.
+                </p>
               </div>
               <button
                 type="submit"
