@@ -22,6 +22,7 @@ export const availabilityQueryValidator = [
     .isISO8601({ strict: true })
     .withMessage('fecha es requerida en formato YYYY-MM-DD'),
   query('servicioId').optional().isInt().withMessage('servicioId debe ser numérico'),
+  query('duration').optional().isInt().withMessage('duration debe ser numérico'),
 ];
 
 export const updateAppointmentValidator = [

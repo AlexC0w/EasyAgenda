@@ -216,21 +216,28 @@ const AdminPage = () => {
     () =>
       citas.map((cita) => {
         const start = toDateTime(cita.fecha, cita.hora);
-        const durationMinutes = Number(cita.servicio?.duracion ?? cita.barbero?.duracion_cita ?? 60);
+        // Use duracionTotal if available, otherwise fallback to single service duration or barber default
+        const durationMinutes = Number(cita.duracionTotal || cita.servicio?.duracion || cita.barbero?.duracion_cita || 60);
         const end = new Date(start.getTime() + durationMinutes * 60_000);
+
+        let serviceName = cita.servicio?.nombre;
+        if (cita.servicios && cita.servicios.length > 0) {
+            serviceName = cita.servicios.map(s => s.servicio.nombre).join(' + ');
+        }
 
         return {
           id: String(cita.id),
-          title: `${cita.cliente} · ${cita.servicio.nombre}`,
+          title: `${cita.cliente} · ${serviceName}`,
           start,
           end,
           extendedProps: {
             telefono: cita.telefono,
             estado: cita.estado,
             barbero: cita.barbero.nombre,
-            servicio: cita.servicio.nombre,
-            precio: cita.servicio.precio,
+            servicio: serviceName,
+            precio: cita.servicio.precio, // Note: Total price calculation might be needed if not stored
             duracion: durationMinutes,
+            servicios: cita.servicios
           },
         };
       }),
@@ -1079,7 +1086,11 @@ const AdminPage = () => {
                           <div className="flex items-start justify-between">
                             <div>
                               <h4 className="text-lg font-bold text-white">{cita.cliente}</h4>
-                              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">{cita.servicio.nombre}</p>
+                              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                                {cita.servicios && cita.servicios.length > 0 
+                                    ? cita.servicios.map(s => s.servicio.nombre).join(' + ')
+                                    : cita.servicio.nombre}
+                              </p>
                             </div>
                             <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-300">
                               {cita.estado}
@@ -1147,7 +1158,11 @@ const AdminPage = () => {
                             <tr key={cita.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
                               <td className="px-4 py-3 text-slate-900 dark:text-white">{cita.cliente}</td>
                               <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{cita.barbero.nombre}</td>
-                              <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{cita.servicio.nombre}</td>
+                              <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                                {cita.servicios && cita.servicios.length > 0 
+                                    ? cita.servicios.map(s => s.servicio.nombre).join(' + ')
+                                    : cita.servicio.nombre}
+                              </td>
                               <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{cita.fecha.split('T')[0]}</td>
                               <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{cita.hora}</td>
                               <td className="px-4 py-3">

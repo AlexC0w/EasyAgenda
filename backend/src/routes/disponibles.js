@@ -18,7 +18,7 @@ router.get(
           return res.status(400).json({ message: 'Se requiere especificar el negocio.' });
       }
 
-      const { fecha, servicioId } = req.query;
+      const { fecha, servicioId, duration } = req.query;
       const barberoId = Number(req.params.barberoId);
       
       // Verify barbero belongs to business
@@ -29,6 +29,7 @@ router.get(
 
       const availability = await getAvailability(barberoId, fecha, {
         serviceId: servicioId ? Number(servicioId) : undefined,
+        duration: duration ? Number(duration) : undefined,
       });
       res.json({ fecha, barberoId, disponibilidad: availability });
     } catch (error) {

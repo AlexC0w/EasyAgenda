@@ -72,7 +72,7 @@ const BookingPage = () => {
   const [barberos, setBarberos] = useState([]);
   const [servicios, setServicios] = useState([]);
   const [selectedBarberoId, setSelectedBarberoId] = useState('');
-  const [selectedServicioId, setSelectedServicioId] = useState('');
+  const [selectedServiceIds, setSelectedServiceIds] = useState([]);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [monthCursor, setMonthCursor] = useState(() => new Date());
@@ -105,7 +105,7 @@ const BookingPage = () => {
           }
         }
         if (serviciosRes.data.length) {
-          setSelectedServicioId(String(serviciosRes.data[0].id));
+          setSelectedServiceIds([String(serviciosRes.data[0].id)]);
         }
       } catch (error) {
         console.error(error);
@@ -120,10 +120,32 @@ const BookingPage = () => {
     [barberos, selectedBarberoId]
   );
 
-  const selectedServicio = useMemo(
-    () => servicios.find((servicio) => String(servicio.id) === selectedServicioId),
-    [servicios, selectedServicioId]
+  const selectedServices = useMemo(
+    () => servicios.filter((servicio) => selectedServiceIds.includes(String(servicio.id))),
+    [servicios, selectedServiceIds]
   );
+
+  const totalDuration = useMemo(
+    () => selectedServices.reduce((sum, s) => sum + s.duracion, 0),
+    [selectedServices]
+  );
+
+  const totalPrice = useMemo(
+    () => selectedServices.reduce((sum, s) => sum + Number(s.precio), 0),
+    [selectedServices]
+  );
+
+  const toggleService = (id) => {
+    const strId = String(id);
+    setSelectedServiceIds((prev) => {
+      if (prev.includes(strId)) {
+        // Prevent deselecting the last service? Or allow empty?
+        // Let's allow empty but validation will block submit.
+        return prev.filter((s) => s !== strId);
+      }
+      return [...prev, strId];
+    });
+  };
 
   useEffect(() => {
     if (!selectedBarbero) return;
@@ -138,18 +160,24 @@ const BookingPage = () => {
 
   useEffect(() => {
     setSelectedTime('');
-  }, [selectedServicioId, selectedDate]);
+  }, [selectedServiceIds, selectedDate]);
 
   useEffect(() => {
     const loadAvailability = async () => {
-      if (!selectedBarberoId || !selectedServicioId || !selectedDate) {
+      if (!selectedBarberoId || selectedServiceIds.length === 0 || !selectedDate) {
         setAvailability([]);
         return;
       }
       try {
         setLoadingSlots(true);
+        // Pass the first service ID for legacy/logging purposes, but also pass total duration
         const { data } = await api.get(`/disponibles/${selectedBarberoId}`, {
-          params: { fecha: selectedDate, servicioId: selectedServicioId, slug },
+          params: { 
+            fecha: selectedDate, 
+            servicioId: selectedServiceIds[0], 
+            duration: totalDuration,
+            slug 
+          },
         });
         setAvailability(data.disponibilidad || []);
       } catch (error) {
@@ -160,7 +188,7 @@ const BookingPage = () => {
       }
     };
     loadAvailability();
-  }, [selectedBarberoId, selectedServicioId, selectedDate, slug]);
+  }, [selectedBarberoId, selectedServiceIds, selectedDate, totalDuration, slug]);
 
   const daysOfWeek = useMemo(
     () => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
@@ -220,7 +248,7 @@ const BookingPage = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!selectedBarbero || !selectedServicio || !selectedDate || !selectedTime) {
+    if (!selectedBarbero || selectedServices.length === 0 || !selectedDate || !selectedTime) {
       setStatus({ state: 'error', message: 'Completa todos los campos para reservar tu cita.' });
       return;
     }
@@ -230,7 +258,8 @@ const BookingPage = () => {
     try {
       const payload = {
         barberoId: Number(selectedBarbero.id),
-        servicioId: Number(selectedServicio.id),
+        servicioId: Number(selectedServices[0].id),
+        serviciosIds: selectedServiceIds.map(Number),
         cliente: formData.nombre,
         telefono: (formData.countryCode || '52') + formData.telefono,
         fecha: selectedDate,
@@ -241,7 +270,7 @@ const BookingPage = () => {
       setConfirmation({
         cita: data,
         barbero: selectedBarbero,
-        servicio: selectedServicio,
+        servicios: selectedServices,
         fecha: selectedDate,
         hora: selectedTime,
         cliente: formData.nombre,
@@ -254,7 +283,12 @@ const BookingPage = () => {
       });
       setView('confirmation');
       const refresh = await api.get(`/disponibles/${selectedBarbero.id}`, {
-        params: { fecha: selectedDate, servicioId: selectedServicio.id, slug },
+        params: { 
+            fecha: selectedDate, 
+            servicioId: selectedServices[0].id, 
+            duration: totalDuration,
+            slug 
+        },
       });
       setAvailability(refresh.data.disponibilidad || []);
     } catch (error) {
@@ -349,20 +383,29 @@ const BookingPage = () => {
 
           {selectedBarbero && (
             <section className="space-y-6">
-              <h3 className="flex items-center gap-3 text-xl font-semibold text-slate-900 dark:text-white">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
-                  <Clock className="h-5 w-5" />
-                </span>
-                Selecciona tu servicio
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="flex items-center gap-3 text-xl font-semibold text-slate-900 dark:text-white">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+                    <Clock className="h-5 w-5" />
+                    </span>
+                    Selecciona tus servicios
+                </h3>
+                {selectedServices.length > 0 && (
+                    <div className="text-right">
+                        <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                            {totalDuration} min · {formatCurrency(totalPrice)}
+                        </p>
+                    </div>
+                )}
+              </div>
               <div className="grid gap-4 md:grid-cols-2">
                 {servicios.map((servicio) => {
-                  const isActive = String(servicio.id) === selectedServicioId;
+                  const isActive = selectedServiceIds.includes(String(servicio.id));
                   return (
                     <button
                       key={servicio.id}
                       type="button"
-                      onClick={() => setSelectedServicioId(String(servicio.id))}
+                      onClick={() => toggleService(servicio.id)}
                       className={`rounded-2xl border p-5 text-left transition-all ${
                         isActive
                           ? 'border-emerald-500/60 bg-emerald-500/10 shadow-lg shadow-emerald-500/20'
@@ -370,10 +413,15 @@ const BookingPage = () => {
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <h4 className="text-lg font-semibold text-slate-900 dark:text-white">{servicio.nombre}</h4>
+                        <div className="flex items-center gap-3">
+                            <div className={`flex h-6 w-6 items-center justify-center rounded-full border ${isActive ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-800'}`}>
+                                {isActive && <Check className="h-4 w-4" />}
+                            </div>
+                            <h4 className="text-lg font-semibold text-slate-900 dark:text-white">{servicio.nombre}</h4>
+                        </div>
                         <span className="text-emerald-600 font-semibold dark:text-emerald-300">{formatCurrency(servicio.precio)}</span>
                       </div>
-                      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{servicio.duracion} minutos</p>
+                      <p className="mt-2 pl-9 text-sm text-slate-500 dark:text-slate-400">{servicio.duracion} minutos</p>
                     </button>
                   );
                 })}
@@ -381,7 +429,7 @@ const BookingPage = () => {
             </section>
           )}
 
-          {selectedBarbero && selectedServicio && (
+          {selectedBarbero && selectedServices.length > 0 && (
             <div className="flex justify-center">
               <button
                 type="button"
@@ -474,7 +522,10 @@ const BookingPage = () => {
                   <Clock className="h-5 w-5 text-emerald-600 dark:text-emerald-300" /> Horarios disponibles
                 </h3>
                 <p className="mt-1 text-xs uppercase tracking-[0.3em] text-slate-500">
-                  {selectedBarbero?.nombre} · {selectedServicio?.nombre}
+                  {selectedBarbero?.nombre}
+                </p>
+                <p className="text-xs text-slate-400">
+                    {selectedServices.map(s => s.nombre).join(' + ')}
                 </p>
                 <p className="mt-4 text-sm text-slate-400">
                   {workingScheduleLabel}
@@ -606,13 +657,20 @@ const BookingPage = () => {
                 <dt className="text-slate-600 dark:text-slate-400">Profesional</dt>
                 <dd className="font-semibold text-slate-900 dark:text-white">{confirmation.barbero.nombre}</dd>
               </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-600 dark:text-slate-400">Servicio</dt>
-                <dd className="font-semibold text-slate-900 dark:text-white">{confirmation.servicio.nombre}</dd>
+              <div className="border-t border-slate-100 pt-2 dark:border-slate-800">
+                <dt className="mb-2 text-slate-600 dark:text-slate-400">Servicios</dt>
+                {confirmation.servicios.map(s => (
+                    <div key={s.id} className="flex items-center justify-between pl-2">
+                        <dd className="text-slate-900 dark:text-white">{s.nombre}</dd>
+                        <dd className="text-slate-500">{formatCurrency(s.precio)}</dd>
+                    </div>
+                ))}
               </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-600 dark:text-slate-400">Duración</dt>
-                <dd className="font-semibold text-slate-900 dark:text-white">{confirmation.servicio.duracion} min</dd>
+              <div className="flex items-center justify-between border-t border-slate-100 pt-2 dark:border-slate-800">
+                <dt className="text-slate-600 dark:text-slate-400">Duración Total</dt>
+                <dd className="font-semibold text-slate-900 dark:text-white">
+                    {confirmation.servicios.reduce((sum, s) => sum + s.duracion, 0)} min
+                </dd>
               </div>
               <div className="flex items-center justify-between">
                 <dt className="text-slate-600 dark:text-slate-400">Fecha</dt>
@@ -625,7 +683,7 @@ const BookingPage = () => {
               <div className="flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-800">
                 <dt className="text-slate-600 dark:text-slate-400">Total</dt>
                 <dd className="text-xl font-bold text-emerald-600 dark:text-emerald-300">
-                  {formatCurrency(confirmation.servicio.precio)}
+                  {formatCurrency(confirmation.servicios.reduce((sum, s) => sum + Number(s.precio), 0))}
                 </dd>
               </div>
             </dl>

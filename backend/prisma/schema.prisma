@@ -48,6 +48,7 @@ model Servicio {
   duracion  Int
   precio    Decimal   @db.Decimal(10, 2)
   citas     Cita[]
+  citasServicios CitaServicio[]
   
   businessId     Int      @default(1)
   business       Business @relation(fields: [businessId], references: [id])
@@ -61,24 +62,36 @@ model Servicio {
 model Cita {
   id          Int      @id @default(autoincrement())
   barbero_id  Int
-  servicio_id Int
+  servicio_id Int?
   cliente     String
   telefono    String
   fecha       DateTime
   hora        String
   estado      String   @default("confirmada")
   recordatorioEnviado Boolean @default(false)
+  duracionTotal Int    @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   barbero  Barbero @relation(fields: [barbero_id], references: [id])
-  servicio Servicio @relation(fields: [servicio_id], references: [id])
+  servicio Servicio? @relation(fields: [servicio_id], references: [id])
+  servicios CitaServicio[]
   
   businessId     Int      @default(1)
   business       Business @relation(fields: [businessId], references: [id])
 
   @@index([barbero_id, fecha])
   @@index([businessId])
+}
+
+model CitaServicio {
+  id         Int      @id @default(autoincrement())
+  citaId     Int
+  cita       Cita     @relation(fields: [citaId], references: [id], onDelete: Cascade)
+  servicioId Int
+  servicio   Servicio @relation(fields: [servicioId], references: [id])
+
+  @@unique([citaId, servicioId])
 }
 
 model User {

@@ -62,7 +62,11 @@ export const getAvailability = async (barberoId, fechaISO, options = {}) => {
 
   const ocupados = new Set();
   citas.forEach((cita) => {
-    const duration = cita.servicio?.duracion || barbero.duracion_cita;
+    // Use total duration if available (multi-service), otherwise single service duration
+    const duration = cita.duracionTotal > 0 
+        ? cita.duracionTotal 
+        : (cita.servicio?.duracion || barbero.duracion_cita);
+        
     const start = toMinutes(cita.hora);
     const blocks = Math.ceil(duration / barbero.duracion_cita);
     for (let block = 0; block < blocks; block += 1) {
