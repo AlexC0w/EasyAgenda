@@ -13,6 +13,7 @@ import {
 import { toast } from 'react-toastify';
 import api from '../api/client.js';
 import Alert from '../components/Alert.jsx';
+import { getInitials } from '../utils/stringUtils.js';
 
 const dayNameToLabel = {
   sunday: 'Dom',
@@ -343,10 +344,7 @@ const BookingPage = () => {
             <div className="grid gap-4 md:grid-cols-3">
               {barberos.map((barbero, index) => {
                 const isActive = String(barbero.id) === selectedBarberoId;
-                const initials = barbero.nombre
-                  .split(' ')
-                  .map((part) => part[0])
-                  .join('');
+                const initials = getInitials(barbero.nombre);
                 return (
                   <button
                     key={barbero.id}
