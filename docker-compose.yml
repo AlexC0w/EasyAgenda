@@ -5,10 +5,10 @@ services:
     image: mariadb:11
     restart: always
     environment:
-      MARIADB_ROOT_PASSWORD: RootPasswordSecure!2025
+      MARIADB_ROOT_PASSWORD: rootpassword
       MARIADB_DATABASE: agenda_octane
       MARIADB_USER: agenda
-      MARIADB_PASSWORD: S3cur3Ag3nd4P4ss2025!
+      MARIADB_PASSWORD: agenda123
     # Port 3306 is now internal only - NOT EXPOSED to Internet
     volumes:
       - mariadb_data:/var/lib/mysql
@@ -20,11 +20,11 @@ services:
       - db
     environment:
       PORT: 4000
-      DATABASE_URL: mysql://agenda:S3cur3Ag3nd4P4ss2025!@db:3306/agenda_octane
+      DATABASE_URL: mysql://agenda:agenda123@db:3306/agenda_octane
       WHATSAPP_API_URL: ${WHATSAPP_API_URL:-}
       WHATSAPP_API_KEY: ${WHATSAPP_API_KEY:-}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
-      JWT_SECRET: ${JWT_SECRET:-supersecret_secure_key_change_me}
+      JWT_SECRET: ${JWT_SECRET:-supersecret}
     ports:
       - '4000:4000'
     command: sh -c "npx prisma migrate deploy && node src/index.js"
