@@ -34,10 +34,13 @@ services:
 
   frontend:
     build: ./frontend
-    restart: always
-    network_mode: host
+    restart: unless-stopped
     depends_on:
       - backend
+    ports:
+      - "8090:8090"
+    environment:
+      - NODE_ENV=production
 
 networks:
   default:
