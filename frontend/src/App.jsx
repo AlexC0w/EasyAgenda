@@ -3,6 +3,7 @@ import { Calendar } from 'lucide-react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import BookingPage from './pages/BookingPage.jsx';
+import SuspendedPage from './pages/SuspendedPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import LandingPage from './pages/LandingPage.jsx';
@@ -96,6 +97,7 @@ const AppShell = () => {
       <main className="mx-auto max-w-6xl px-4 py-10">
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/suspended" element={<SuspendedPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/confirmar-cita/:id" element={<ConfirmationPage />} />

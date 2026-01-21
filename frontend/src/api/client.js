@@ -19,6 +19,9 @@ api.interceptors.response.use(
       localStorage.removeItem('agenda_octane_token');
       delete api.defaults.headers.common.Authorization;
     }
+    if (error.response?.status === 403 && error.response?.data?.code === 'ACCOUNT_SUSPENDED') {
+      window.location.href = '/suspended';
+    }
     return Promise.reject(error);
   }
 );

@@ -40,6 +40,16 @@ export const resolveTenant = async (req, res, next) => {
     }
 
     req.businessId = business.id;
+    req.businessId = business.id;
+    
+    if (business.status === 'SUSPENDED') {
+       return res.status(403).json({ 
+        message: 'Servicio Suspendido', 
+        code: 'ACCOUNT_SUSPENDED',
+        businessId: business.id 
+      });
+    }
+
     next();
   } catch (error) {
     next(error);
