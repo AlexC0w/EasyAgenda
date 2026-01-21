@@ -15,7 +15,10 @@ export const authenticate = async (req, res, next) => {
 
   try {
     const payload = verifyToken(token);
-    const user = await prisma.user.findUnique({ where: { id: payload.sub } });
+    const user = await prisma.user.findUnique({ 
+      where: { id: payload.sub },
+      include: { business: true } 
+    });
     if (!user) {
       return res.status(401).json({ message: 'Usuario no encontrado' });
     }
