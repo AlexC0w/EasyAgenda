@@ -78,7 +78,7 @@ const ConfirmationPage = () => {
       return (
         <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 dark:bg-slate-950">
             <div className="text-center">
-                <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600"></div>
+                <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
                 <h2 className="mt-6 text-xl font-semibold text-slate-900 dark:text-white">Cargando...</h2>
             </div>
         </div>
@@ -87,12 +87,12 @@ const ConfirmationPage = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 dark:bg-slate-950">
-      <div className="w-full max-w-md space-y-8 rounded-3xl bg-white p-8 shadow-xl shadow-emerald-500/5 dark:bg-slate-900">
+      <div className="w-full max-w-md space-y-8 rounded-3xl bg-white p-8 shadow-xl shadow-blue-500/5 dark:bg-slate-900">
         
         {/* Header Status Icon */}
         <div className="text-center">
             {status === 'success' && (
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-purple-400">
                     <Check className="h-10 w-10" />
                 </div>
             )}
@@ -125,7 +125,7 @@ const ConfirmationPage = () => {
             <div className="mt-8 rounded-2xl border border-slate-100 bg-slate-50 p-6 text-left dark:border-slate-800 dark:bg-slate-800/50">
             <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                <User className="h-5 w-5 text-emerald-500" />
+                <User className="h-5 w-5 text-blue-500" />
                 <div>
                     <p className="text-xs font-medium uppercase text-slate-500">Cliente</p>
                     <p className="font-semibold text-slate-900 dark:text-white">{cita.cliente}</p>
@@ -133,7 +133,7 @@ const ConfirmationPage = () => {
                 </div>
                 </div>
                 <div className="flex items-start gap-3">
-                <Scissors className="mt-1 h-5 w-5 text-emerald-500" />
+                <Scissors className="mt-1 h-5 w-5 text-blue-500" />
                 <div className="w-full">
                     <p className="text-xs font-medium uppercase text-slate-500">Servicios</p>
                     {cita.servicios && cita.servicios.length > 0 ? (
@@ -150,14 +150,14 @@ const ConfirmationPage = () => {
                     )}
                     <div className="mt-2 flex justify-between border-t border-slate-200 pt-2 text-sm font-semibold dark:border-slate-700">
                         <span className="text-slate-900 dark:text-white">Duración Total</span>
-                        <span className="text-emerald-600 dark:text-emerald-400">
+                        <span className="text-blue-600 dark:text-purple-400">
                             {cita.duracionTotal || cita.servicio?.duracion} min
                         </span>
                     </div>
                 </div>
                 </div>
                 <div className="flex items-center gap-3">
-                <Calendar className="h-5 w-5 text-emerald-500" />
+                <Calendar className="h-5 w-5 text-blue-500" />
                 <div>
                     <p className="text-xs font-medium uppercase text-slate-500">Fecha</p>
                     <p className="font-semibold text-slate-900 dark:text-white">
@@ -166,7 +166,7 @@ const ConfirmationPage = () => {
                 </div>
                 </div>
                 <div className="flex items-center gap-3">
-                <Clock className="h-5 w-5 text-emerald-500" />
+                <Clock className="h-5 w-5 text-blue-500" />
                 <div>
                     <p className="text-xs font-medium uppercase text-slate-500">Horario</p>
                     <p className="font-semibold text-slate-900 dark:text-white">
@@ -198,7 +198,7 @@ const ConfirmationPage = () => {
                 <button
                     onClick={handleConfirm}
                     disabled={actionLoading}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
                 >
                     <Check className="h-4 w-4" />
                     Confirmar

@@ -37,7 +37,7 @@ const SuspendedPage = () => {
               href="https://wa.me/526271310248" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-500 shadow-lg shadow-emerald-500/20"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-500 shadow-lg shadow-blue-500/20"
             >
               <Phone className="h-4 w-4" />
               Contactar a Soporte

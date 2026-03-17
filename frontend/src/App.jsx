@@ -20,7 +20,7 @@ const AppShell = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [businessName, setBusinessName] = useState('Agenda Octane');
+  const [businessName, setBusinessName] = useState('Agenda Shessai');
   const [businessGiro, setBusinessGiro] = useState('Barber Studio');
   
   const [theme, setTheme] = useState(() => {
@@ -74,7 +74,7 @@ const AppShell = () => {
           console.error('Error fetching business name', e);
         }
       } else {
-        setBusinessName('Agenda Octane');
+        setBusinessName('Agenda Shessai');
         setBusinessGiro('Plataforma de Reservas');
       }
     };

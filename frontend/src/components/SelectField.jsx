@@ -5,7 +5,7 @@ const SelectField = ({ label, options, value, onChange, placeholder, disabled, c
       value={value ?? ''}
       onChange={(event) => onChange(event.target.value)}
       disabled={disabled}
-      className={`rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 ${className}`}
+      className={`rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 ${className}`}
     >
       <option value="" disabled>
         {placeholder}

@@ -33,7 +33,14 @@ router.get('/', authenticate, async (req, res, next) => {
       },
       orderBy: [{ fecha: 'asc' }, { hora: 'asc' }],
     });
-    res.json(citas);
+    const response = citas.map(cita => {
+      if (req.user.role === 'BARBER') {
+        const { telefono, ...rest } = cita;
+        return rest;
+      }
+      return cita;
+    });
+    res.json(response);
   } catch (error) {
     next(error);
   }
@@ -61,7 +68,14 @@ router.get('/:barberoId', authenticate, async (req, res, next) => {
       },
       orderBy: [{ fecha: 'asc' }, { hora: 'asc' }],
     });
-    res.json(citas);
+    const response = citas.map(cita => {
+      if (req.user.role === 'BARBER') {
+        const { telefono, ...rest } = cita;
+        return rest;
+      }
+      return cita;
+    });
+    res.json(response);
   } catch (error) {
     next(error);
   }

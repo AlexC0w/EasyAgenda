@@ -680,25 +680,77 @@ const AdminPage = () => {
     return [{ value: '', label: 'Todos los profesionales' }, ...base];
   }, [barberos]);
 
+  const handleCustomerPortal = async () => {
+    try {
+      const { data } = await api.post('/stripe/customer-portal');
+      window.location.href = data.url;
+    } catch (e) {
+      console.error(e);
+      setStatus({ state: 'error', message: 'No se pudo abrir el portal de facturación.' });
+    }
+  };
+
+  const handleStartTrial = async () => {
+    try {
+      const { data } = await api.post('/stripe/create-checkout-session');
+      window.location.href = data.url;
+    } catch (e) {
+      console.error(e);
+      setStatus({ state: 'error', message: 'No se pudo conectar con el portal de pagos.' });
+    }
+  };
+
+  // Bloqueo de Stripe temporalmente pausado para pruebas locales:
+  // if (!user?.subscriptionStatus || (user.subscriptionStatus !== 'active' && user.subscriptionStatus !== 'trialing')) {
+  if (false) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center rounded-3xl border border-blue-500/20 bg-white p-8 text-center shadow-xl dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg shadow-purple-500/30">
+          <Settings className="h-10 w-10" />
+        </div>
+        <h2 className="mb-2 text-2xl font-bold text-slate-900 dark:text-white">Activa tu cuenta</h2>
+        <p className="mb-8 max-w-md text-slate-500 dark:text-slate-400">
+          Para continuar utilizando <b>Agenda Shessai</b> y aceptar reservas de WhatsApp, necesitas registrar tu método de cobro en Stripe. 
+          <br/><br/>Recibirás <b>15 días gratis</b> para probar la plataforma administrativa; no se te cobrará nada hoy.
+        </p>
+        <button
+          onClick={handleStartTrial}
+          className="rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-4 font-bold uppercase tracking-widest text-white transition hover:scale-105 shadow-xl shadow-purple-500/20"
+        >
+          Iniciar mis 15 días gratis
+        </button>
+        {status.state === 'error' && <p className="mt-4 text-sm text-red-500">{status.message}</p>}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-emerald-500/5 dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-emerald-500/10">
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-blue-500/5 dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-blue-500/10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-emerald-600/70 dark:text-emerald-300/70">Agenda Octane</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-blue-600/70 dark:text-purple-400/70">Agenda Shessai</p>
             <h2 className="mt-2 text-3xl font-semibold text-slate-900 dark:text-white">Panel de administración</h2>
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
               Gestiona la agenda, usuarios y la información clave del estudio desde una vista unificada.
             </p>
           </div>
-          <div className="flex flex-col items-start gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-sm text-emerald-800 dark:text-emerald-100">
-            <span className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-emerald-600/80 dark:text-emerald-300/80">
+          <div className="flex flex-col items-start gap-2 rounded-2xl border border-blue-500/30 bg-blue-500/10 px-5 py-4 text-sm text-blue-800 dark:text-blue-100">
+            <span className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-blue-600/80 dark:text-purple-300/80">
               <ShieldCheck className="h-4 w-4" /> Sesión activa
             </span>
             <span className="text-base font-semibold text-slate-900 dark:text-white">{user?.username}</span>
-            <span className="text-xs uppercase tracking-[0.3em] text-emerald-600/70 dark:text-emerald-300/70">Rol · {user?.role}</span>
+            <span className="text-xs uppercase tracking-[0.3em] text-blue-600/70 dark:text-purple-300/70">Rol · {user?.role}</span>
             {user?.barberoNombre && (
-              <span className="text-xs text-emerald-700/80 dark:text-emerald-200/80">Asignado a: {user.barberoNombre}</span>
+              <span className="text-xs text-blue-700/80 dark:text-blue-200/80">Asignado a: {user.barberoNombre}</span>
+            )}
+            {isAdmin && user?.subscriptionStatus && (
+              <button 
+                onClick={handleCustomerPortal}
+                className="mt-2 text-xs font-semibold uppercase tracking-wider text-purple-600 hover:text-purple-500 underline decoration-purple-500/30 underline-offset-4 dark:text-purple-400"
+              >
+                Configurar Suscripción y Tarjetas ↗
+              </button>
             )}
           </div>
         </div>
@@ -716,8 +768,8 @@ const AdminPage = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-widest transition ${
                   activeTab === tab.id
-                    ? 'border-emerald-400 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200'
-                    : 'border-slate-200 text-slate-500 hover:border-emerald-400/60 hover:text-emerald-600 dark:border-slate-700/70 dark:text-slate-400 dark:hover:text-emerald-200'
+                    ? 'border-purple-400 bg-blue-500/10 text-blue-700 dark:text-blue-200'
+                    : 'border-slate-200 text-slate-500 hover:border-purple-400/60 hover:text-blue-600 dark:border-slate-700/70 dark:text-slate-400 dark:hover:text-blue-200'
                 }`}
               >
                 {tab.icon}
@@ -771,30 +823,30 @@ const AdminPage = () => {
             <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800/80 dark:bg-slate-900/80">
               <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
                 <span>Citas del periodo</span>
-                <Calendar className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
+                <Calendar className="h-4 w-4 text-blue-500 dark:text-purple-400" />
               </div>
               <p className="mt-3 text-3xl font-semibold text-slate-900 dark:text-white">{metrics.total}</p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800/80 dark:bg-slate-900/80">
               <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
                 <span>Confirmadas</span>
-                <ShieldCheck className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
+                <ShieldCheck className="h-4 w-4 text-blue-500 dark:text-purple-400" />
               </div>
-              <p className="mt-3 text-3xl font-semibold text-emerald-600 dark:text-emerald-300">{metrics.confirmadas}</p>
+              <p className="mt-3 text-3xl font-semibold text-blue-600 dark:text-purple-300">{metrics.confirmadas}</p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800/80 dark:bg-slate-900/80">
               <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
                 <span>Ingresos estimados</span>
-                <DollarSign className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
+                <DollarSign className="h-4 w-4 text-blue-500 dark:text-purple-400" />
               </div>
-              <p className="mt-3 text-3xl font-semibold text-emerald-600 dark:text-emerald-300">
+              <p className="mt-3 text-3xl font-semibold text-blue-600 dark:text-purple-300">
                 ${metrics.ingresos.toFixed(2)}
               </p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800/80 dark:bg-slate-900/80">
               <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
                 <span>Duración promedio</span>
-                <Clock className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
+                <Clock className="h-4 w-4 text-blue-500 dark:text-purple-400" />
               </div>
               <p className="mt-3 text-3xl font-semibold text-slate-900 dark:text-white">{metrics.duracionPromedio} min</p>
             </div>
@@ -806,7 +858,7 @@ const AdminPage = () => {
             <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 md:flex-row md:items-center md:justify-between dark:border-slate-800/80 dark:bg-slate-900/80">
               <div className="flex flex-1 flex-col gap-4 md:flex-row md:items-center">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-purple-400">
                      <Users className="h-5 w-5" />
                   </div>
                   <div>
@@ -828,7 +880,7 @@ const AdminPage = () => {
                     />
                   </div>
                 ) : (
-                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-200">
+                  <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 px-3 py-2 text-xs text-blue-200">
                     Vista de profesional: <strong>{user?.username}</strong>
                   </div>
                 )}
@@ -838,7 +890,7 @@ const AdminPage = () => {
                 <button
                   type="button"
                   onClick={() => loadCitas(isAdmin ? selectedBarbero : '')}
-                  className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600 transition hover:bg-emerald-500 hover:text-white hover:border-emerald-500 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-slate-300"
+                  className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600 transition hover:bg-blue-500 hover:text-white hover:border-blue-500 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-slate-300"
                 >
                   <RefreshCcw className="h-3.5 w-3.5" />
                   Actualizar
@@ -849,7 +901,7 @@ const AdminPage = () => {
             <div className="rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800/80 dark:bg-slate-900/80">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Agenda semanal</h3>
-                <span className="text-xs uppercase tracking-[0.3em] text-emerald-600/70 dark:text-emerald-300/70">FullCalendar</span>
+                <span className="text-xs uppercase tracking-[0.3em] text-blue-600/70 dark:text-purple-300/70">FullCalendar</span>
               </div>
               
               <style>{`
@@ -1082,17 +1134,17 @@ const AdminPage = () => {
                       </div>
                     ) : (
                       citas.map((cita) => (
-                        <div key={cita.id} className="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5 shadow-lg shadow-emerald-500/5">
+                        <div key={cita.id} className="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5 shadow-lg shadow-blue-500/5">
                           <div className="flex items-start justify-between">
                             <div>
                               <h4 className="text-lg font-bold text-white">{cita.cliente}</h4>
-                              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                              <p className="text-xs font-semibold uppercase tracking-wider text-purple-400">
                                 {cita.servicios && cita.servicios.length > 0 
                                     ? cita.servicios.map(s => s.servicio.nombre).join(' + ')
                                     : cita.servicio.nombre}
                               </p>
                             </div>
-                            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-300">
+                            <span className="rounded-full bg-blue-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-purple-300">
                               {cita.estado}
                             </span>
                           </div>
@@ -1116,7 +1168,7 @@ const AdminPage = () => {
                             <button
                               type="button"
                               onClick={() => handleReschedule(cita)}
-                              className="flex-1 rounded-xl border border-slate-700/70 py-2 text-xs font-semibold uppercase tracking-wider text-slate-300 transition hover:border-emerald-400/60 hover:text-emerald-200"
+                              className="flex-1 rounded-xl border border-slate-700/70 py-2 text-xs font-semibold uppercase tracking-wider text-slate-300 transition hover:border-purple-400/60 hover:text-blue-200"
                             >
                               Reprogramar
                             </button>
@@ -1166,7 +1218,7 @@ const AdminPage = () => {
                               <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{cita.fecha.split('T')[0]}</td>
                               <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{cita.hora}</td>
                               <td className="px-4 py-3">
-                                <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-200">
+                                <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-blue-200">
                                   {cita.estado}
                                 </span>
                               </td>
@@ -1175,7 +1227,7 @@ const AdminPage = () => {
                                   <button
                                     type="button"
                                     onClick={() => handleReschedule(cita)}
-                                    className="rounded-full border border-slate-700/70 px-3 py-1 text-slate-300 transition hover:border-emerald-400/60 hover:text-emerald-200"
+                                    className="rounded-full border border-slate-700/70 px-3 py-1 text-slate-300 transition hover:border-purple-400/60 hover:text-blue-200"
                                   >
                                     Reprogramar
                                   </button>
@@ -1204,20 +1256,20 @@ const AdminPage = () => {
           <div className="rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800/80 dark:bg-slate-900/80">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
-                <Users className="h-5 w-5 text-emerald-400" /> Usuarios registrados
+                <Users className="h-5 w-5 text-purple-400" /> Usuarios registrados
               </h3>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setIsCreateUserModalOpen(true)}
-                  className="flex items-center gap-2 rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-emerald-600"
+                  className="flex items-center gap-2 rounded-full bg-blue-500 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-blue-600"
                 >
                   <UserPlus className="h-4 w-4" /> Nuevo usuario
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowPasswords((prev) => !prev)}
-                  className="flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-xs uppercase tracking-widest text-slate-600 transition hover:border-emerald-400/60 hover:text-emerald-600 dark:border-slate-700/70 dark:text-slate-300 dark:hover:text-emerald-200"
+                  className="flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-xs uppercase tracking-widest text-slate-600 transition hover:border-purple-400/60 hover:text-blue-600 dark:border-slate-700/70 dark:text-slate-300 dark:hover:text-blue-200"
                 >
                 {showPasswords ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 {showPasswords ? 'Ocultar' : 'Mostrar'} contraseñas
@@ -1249,7 +1301,7 @@ const AdminPage = () => {
                         <td className="px-4 py-3 text-slate-900 dark:text-white">{item.username}</td>
                         <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{item.role}</td>
                         <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{item.telefono || '—'}</td>
-                        <td className="px-4 py-3 font-mono text-xs text-emerald-600 dark:text-emerald-200">
+                        <td className="px-4 py-3 font-mono text-xs text-blue-600 dark:text-blue-200">
                           {showPasswords ? item.password : '••••••••'}
                         </td>
                         <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
@@ -1261,7 +1313,7 @@ const AdminPage = () => {
                               <span
                                 className={`text-xs uppercase tracking-widest ${
                                   item.barberoProfile
-                                    ? 'text-emerald-600 dark:text-emerald-300'
+                                    ? 'text-blue-600 dark:text-purple-300'
                                     : 'text-amber-600 dark:text-amber-300'
                                 }`}
                               >
@@ -1278,7 +1330,7 @@ const AdminPage = () => {
                               <button
                                 type="button"
                                 onClick={() => openBarberProfileEditor(item)}
-                                className="rounded-full border border-emerald-500/50 px-3 py-1 text-emerald-600 transition hover:bg-emerald-500/10 dark:border-emerald-400/60 dark:text-emerald-200 dark:hover:border-emerald-300 dark:hover:text-emerald-100"
+                                className="rounded-full border border-blue-500/50 px-3 py-1 text-blue-600 transition hover:bg-blue-500/10 dark:border-purple-400/60 dark:text-blue-200 dark:hover:border-purple-300 dark:hover:text-blue-100"
                               >
                                 Configurar perfil
                               </button>
@@ -1286,14 +1338,14 @@ const AdminPage = () => {
                             <button
                               type="button"
                               onClick={() => handleResetPassword(item)}
-                              className="rounded-full border border-slate-300 px-3 py-1 text-slate-600 transition hover:border-emerald-400/60 hover:text-emerald-600 dark:border-slate-700/70 dark:text-slate-300 dark:hover:text-emerald-200"
+                              className="rounded-full border border-slate-300 px-3 py-1 text-slate-600 transition hover:border-purple-400/60 hover:text-blue-600 dark:border-slate-700/70 dark:text-slate-300 dark:hover:text-blue-200"
                             >
                               Reset pass
                             </button>
                             <button
                               type="button"
                               onClick={() => handleEditPhone(item)}
-                              className="rounded-full border border-slate-300 px-3 py-1 text-slate-600 transition hover:border-emerald-400/60 hover:text-emerald-600 dark:border-slate-700/70 dark:text-slate-300 dark:hover:text-emerald-200"
+                              className="rounded-full border border-slate-300 px-3 py-1 text-slate-600 transition hover:border-purple-400/60 hover:text-blue-600 dark:border-slate-700/70 dark:text-slate-300 dark:hover:text-blue-200"
                             >
                               Editar teléfono
                             </button>
@@ -1317,7 +1369,7 @@ const AdminPage = () => {
             <div className="rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800/80 dark:bg-slate-900/80">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
-                  <Edit3 className="h-5 w-5 text-emerald-400" /> Configurar perfil profesional
+                  <Edit3 className="h-5 w-5 text-purple-400" /> Configurar perfil profesional
                 </h3>
                 <button
                   type="button"
@@ -1337,7 +1389,7 @@ const AdminPage = () => {
                     <input
                       value={barberProfileForm.nombre}
                       onChange={(event) => handleBarberProfileFormChange('nombre', event.target.value)}
-                      className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                       placeholder="Carlos Hernández"
                     />
                   </div>
@@ -1349,7 +1401,7 @@ const AdminPage = () => {
                       step={5}
                       value={barberProfileForm.duracionCita}
                       onChange={(event) => handleBarberProfileFormChange('duracionCita', event.target.value)}
-                      className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                     />
                   </div>
                   <div className="flex flex-col gap-2">
@@ -1358,7 +1410,7 @@ const AdminPage = () => {
                       type="time"
                       value={barberProfileForm.horarioInicio}
                       onChange={(event) => handleBarberProfileFormChange('horarioInicio', event.target.value)}
-                      className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                     />
                   </div>
                   <div className="flex flex-col gap-2">
@@ -1367,7 +1419,7 @@ const AdminPage = () => {
                       type="time"
                       value={barberProfileForm.horarioFin}
                       onChange={(event) => handleBarberProfileFormChange('horarioFin', event.target.value)}
-                      className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                     />
                   </div>
                   <div className="md:col-span-2">
@@ -1382,8 +1434,8 @@ const AdminPage = () => {
                             onClick={() => handleBarberProfileDayToggle(day.value)}
                             className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                               active
-                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/60'
-                                : 'border border-slate-700/70 text-slate-400 hover:border-emerald-400/60 hover:text-emerald-200'
+                                ? 'bg-blue-500/20 text-purple-300 border border-purple-400/60'
+                                : 'border border-slate-700/70 text-slate-400 hover:border-purple-400/60 hover:text-blue-200'
                             }`}
                           >
                             {day.label}
@@ -1404,7 +1456,7 @@ const AdminPage = () => {
                   <button
                     type="submit"
                     disabled={savingBarberProfile}
-                    className="flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-950 transition hover:from-emerald-400 hover:to-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-400 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-950 transition hover:from-purple-400 hover:to-purple-300 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <Save className="h-4 w-4" /> {savingBarberProfile ? 'Guardando...' : 'Guardar perfil'}
                   </button>
@@ -1429,7 +1481,7 @@ const AdminPage = () => {
                   name="username"
                   value={userForm.username}
                   onChange={handleUserFormChange}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   placeholder="profesional01"
                   required
                 />
@@ -1440,7 +1492,7 @@ const AdminPage = () => {
                   name="password"
                   value={userForm.password}
                   onChange={handleUserFormChange}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   placeholder="********"
                   required
                 />
@@ -1451,7 +1503,7 @@ const AdminPage = () => {
                   name="telefono"
                   value={userForm.telefono}
                   onChange={handleUserFormChange}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   placeholder="+52 555 010 1234"
                 />
               </div>
@@ -1461,7 +1513,7 @@ const AdminPage = () => {
                   name="role"
                   value={userForm.role}
                   onChange={handleUserFormChange}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                 >
                   <option value="ADMIN">Administrador</option>
                   <option value="BARBER">Profesional</option>
@@ -1471,7 +1523,7 @@ const AdminPage = () => {
                 <div className="md:col-span-2 space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-800/70 dark:bg-slate-950/60">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-300">
+                      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-blue-600 dark:text-purple-300">
                         <ShieldCheck className="h-4 w-4" /> Perfil profesional
                       </h4>
                       <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
@@ -1485,7 +1537,7 @@ const AdminPage = () => {
                       <input
                         value={userForm.barberoProfile.nombre}
                         onChange={(event) => handleUserBarberFieldChange('nombre', event.target.value)}
-                        className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                        className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                         placeholder="Carlos Hernández"
                       />
                     </div>
@@ -1497,7 +1549,7 @@ const AdminPage = () => {
                         step={5}
                         value={userForm.barberoProfile.duracionCita}
                         onChange={(event) => handleUserBarberFieldChange('duracionCita', event.target.value)}
-                        className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                        className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                       />
                     </div>
                     <div className="flex flex-col gap-2">
@@ -1506,7 +1558,7 @@ const AdminPage = () => {
                         type="time"
                         value={userForm.barberoProfile.horarioInicio}
                         onChange={(event) => handleUserBarberFieldChange('horarioInicio', event.target.value)}
-                        className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                        className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                       />
                     </div>
                     <div className="flex flex-col gap-2">
@@ -1515,7 +1567,7 @@ const AdminPage = () => {
                         type="time"
                         value={userForm.barberoProfile.horarioFin}
                         onChange={(event) => handleUserBarberFieldChange('horarioFin', event.target.value)}
-                        className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                        className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                       />
                     </div>
                     <div className="md:col-span-2">
@@ -1530,8 +1582,8 @@ const AdminPage = () => {
                               onClick={() => handleUserBarberDayToggle(day.value)}
                               className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                                 active
-                                  ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/50 dark:text-emerald-300 dark:border-emerald-400/60'
-                                  : 'border border-slate-300 text-slate-600 hover:border-emerald-400/60 hover:text-emerald-600 dark:border-slate-700/70 dark:text-slate-400 dark:hover:text-emerald-200'
+                                  ? 'bg-blue-500/20 text-blue-600 border border-blue-500/50 dark:text-purple-300 dark:border-purple-400/60'
+                                  : 'border border-slate-300 text-slate-600 hover:border-purple-400/60 hover:text-blue-600 dark:border-slate-700/70 dark:text-slate-400 dark:hover:text-blue-200'
                               }`}
                             >
                               {day.label}
@@ -1547,7 +1599,7 @@ const AdminPage = () => {
                 <button
                   type="submit"
                   disabled={savingUser}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 px-4 py-3 text-sm font-semibold uppercase tracking-widest text-slate-950 transition hover:from-emerald-400 hover:to-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-400 px-4 py-3 text-sm font-semibold uppercase tracking-widest text-slate-950 transition hover:from-purple-400 hover:to-purple-300 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {savingUser ? 'Guardando...' : 'Crear usuario'}
                 </button>
@@ -1561,7 +1613,7 @@ const AdminPage = () => {
         <div className="grid gap-6 lg:grid-cols-[380px,1fr]">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800/80 dark:bg-slate-900/80">
             <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
-              <Scissors className="h-5 w-5 text-emerald-400" /> {editingServiceId ? 'Editar servicio' : 'Nuevo servicio'}
+              <Scissors className="h-5 w-5 text-purple-400" /> {editingServiceId ? 'Editar servicio' : 'Nuevo servicio'}
             </h3>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Administra los servicios disponibles manteniendo actualizados sus precios y duraciones.
@@ -1573,7 +1625,7 @@ const AdminPage = () => {
                   name="nombre"
                   value={serviceForm.nombre}
                   onChange={handleServiceFormChange}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   placeholder="Corte premium"
                 />
               </div>
@@ -1587,7 +1639,7 @@ const AdminPage = () => {
                     name="duracion"
                     value={serviceForm.duracion}
                     onChange={handleServiceFormChange}
-                    className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   />
                 </div>
                 <div className="flex flex-col gap-2">
@@ -1599,7 +1651,7 @@ const AdminPage = () => {
                     name="precio"
                     value={serviceForm.precio}
                     onChange={handleServiceFormChange}
-                    className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   />
                 </div>
               </div>
@@ -1616,7 +1668,7 @@ const AdminPage = () => {
                 <button
                   type="submit"
                   disabled={savingService}
-                  className="flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-950 transition hover:from-emerald-400 hover:to-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-400 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-950 transition hover:from-purple-400 hover:to-purple-300 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <Save className="h-4 w-4" /> {savingService ? 'Guardando...' : editingServiceId ? 'Actualizar servicio' : 'Crear servicio'}
                 </button>
@@ -1626,9 +1678,9 @@ const AdminPage = () => {
           <div className="rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800/80 dark:bg-slate-900/80">
             <div className="flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
-                <ListChecks className="h-5 w-5 text-emerald-400" /> Servicios disponibles
+                <ListChecks className="h-5 w-5 text-purple-400" /> Servicios disponibles
               </h3>
-              <span className="text-xs uppercase tracking-[0.3em] text-emerald-300/70">{services.length} activos</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-purple-300/70">{services.length} activos</span>
             </div>
             <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800/80">
               <table className="min-w-full text-left text-sm text-slate-600 dark:text-slate-300">
@@ -1652,13 +1704,13 @@ const AdminPage = () => {
                       <tr key={service.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
                         <td className="px-4 py-3 text-slate-900 dark:text-white">{service.nombre}</td>
                         <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{service.duracion} min</td>
-                        <td className="px-4 py-3 text-emerald-600 dark:text-emerald-300">{formatCurrency(service.precio)}</td>
+                        <td className="px-4 py-3 text-blue-600 dark:text-purple-300">{formatCurrency(service.precio)}</td>
                         <td className="px-4 py-3 text-xs">
                           <div className="flex flex-wrap gap-2">
                             <button
                               type="button"
                               onClick={() => handleEditService(service)}
-                              className="rounded-full border border-slate-300 px-3 py-1 text-slate-600 transition hover:border-emerald-400/60 hover:text-emerald-600 dark:border-slate-700/70 dark:text-slate-300 dark:hover:text-emerald-200"
+                              className="rounded-full border border-slate-300 px-3 py-1 text-slate-600 transition hover:border-purple-400/60 hover:text-blue-600 dark:border-slate-700/70 dark:text-slate-300 dark:hover:text-blue-200"
                             >
                               Editar
                             </button>
@@ -1685,7 +1737,7 @@ const AdminPage = () => {
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800/80 dark:bg-slate-900/80">
             <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
-              <Building className="h-5 w-5 text-emerald-400" /> Información general
+              <Building className="h-5 w-5 text-purple-400" /> Información general
             </h3>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Actualiza los datos visibles en comunicaciones y recordatorios automáticos.
@@ -1697,13 +1749,13 @@ const AdminPage = () => {
                   name="businessName"
                   value={business.businessName}
                   onChange={handleBusinessChange}
-                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                  placeholder="Agenda Octane Studio"
+                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  placeholder="Agenda Shessai Studio"
                 />
               </div>
               <div>
                 <label className="text-xs font-semibold uppercase tracking-widest text-slate-600 dark:text-slate-400">Teléfono principal</label>
-                <div className="mt-2 flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white">
+                <div className="mt-2 flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus-within:border-purple-400 focus-within:ring-2 focus-within:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white">
                   <Phone className="h-4 w-4 text-slate-500" />
                   <input
                     name="businessPhone"
@@ -1721,7 +1773,7 @@ const AdminPage = () => {
                   value={business.businessAddress}
                   onChange={handleBusinessChange}
                   rows={3}
-                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   placeholder="Av. Revolución 123, CDMX"
                 />
               </div>
@@ -1731,7 +1783,7 @@ const AdminPage = () => {
                   name="whatsappSender"
                   value={business.whatsappSender}
                   onChange={handleBusinessChange}
-                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   placeholder="+52 555 010 8888"
                 />
               </div>
@@ -1744,7 +1796,7 @@ const AdminPage = () => {
                     value={business.whatsappToken || ''}
                     onChange={handleBusinessChange}
                     placeholder="Pegar token aquí..."
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/40 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                     />
                     <button
                         type="button"
@@ -1761,7 +1813,7 @@ const AdminPage = () => {
               <button
                 type="submit"
                 disabled={savingBusiness}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 px-4 py-3 text-sm font-semibold uppercase tracking-widest text-slate-950 transition hover:from-emerald-400 hover:to-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-400 px-4 py-3 text-sm font-semibold uppercase tracking-widest text-slate-950 transition hover:from-purple-400 hover:to-purple-300 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {savingBusiness ? 'Guardando...' : 'Guardar cambios'}
               </button>
@@ -1775,16 +1827,16 @@ const AdminPage = () => {
             </p>
             <ul className="mt-6 space-y-3 text-sm text-slate-600 dark:text-slate-300">
               <li>
-                <strong className="text-emerald-300">Nombre comercial:</strong> {business.businessName || '—'}
+                <strong className="text-purple-300">Nombre comercial:</strong> {business.businessName || '—'}
               </li>
               <li>
-                <strong className="text-emerald-300">Teléfono:</strong> {business.businessPhone || '—'}
+                <strong className="text-purple-300">Teléfono:</strong> {business.businessPhone || '—'}
               </li>
               <li>
-                <strong className="text-emerald-300">Dirección:</strong> {business.businessAddress || '—'}
+                <strong className="text-purple-300">Dirección:</strong> {business.businessAddress || '—'}
               </li>
               <li>
-                <strong className="text-emerald-300">WhatsApp remitente:</strong> {business.whatsappSender || '—'}
+                <strong className="text-purple-300">WhatsApp remitente:</strong> {business.whatsappSender || '—'}
               </li>
             </ul>
             <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-500 dark:border-slate-800/60 dark:bg-slate-950/40 dark:text-slate-400">

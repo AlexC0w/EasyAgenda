@@ -23,10 +23,10 @@ const serializeUser = (user) => {
     username: user.username,
     role: user.role,
     telefono: user.telefono,
-    password: user.passwordPlain,
     businessId: user.businessId,
     businessSlug: user.business?.slug,
     businessGiro: user.business?.giro,
+    subscriptionStatus: user.business?.subscriptionStatus,
     barberoId: barberoProfile?.id ?? null,
     barberoNombre: barberoProfile?.nombre ?? null,
     barberoProfile,
@@ -66,7 +66,6 @@ router.post('/register-business', async (req, res, next) => {
         data: {
           username,
           passwordHash,
-          passwordPlain: password, // TODO: Remove in production
           telefono,
           role: 'ADMIN',
           businessId: business.id,

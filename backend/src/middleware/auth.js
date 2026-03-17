@@ -33,6 +33,8 @@ export const authenticate = async (req, res, next) => {
       businessId: user.businessId,
       barberoId: barbero?.id || null,
       businessStatus: user.business.status,
+      subscriptionStatus: user.business.subscriptionStatus,
+      trialEndsAt: user.business.trialEndsAt,
     };
 
     if (user.business.status === 'SUSPENDED') {
@@ -89,6 +91,37 @@ export const requireRole = (...roles) => (req, res, next) => {
 
   if (!roles.includes(req.user.role)) {
     return res.status(403).json({ message: 'No autorizado' });
+  }
+
+  next();
+};
+
+export const requireActiveSubscription = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'No autenticado' });
+  }
+
+  const status = req.user.subscriptionStatus;
+  const trialEnds = req.user.trialEndsAt ? new Date(req.user.trialEndsAt) : null;
+  const now = new Date();
+
+  // Permisivo si el negocio aún no registra tarjeta pero no implementaremos hard block aqui sin frontend, el cliente requiere tarjeta para trial, 
+  // Pero asumiendo que "trialing" e "active" son válidos. Si no hay token de Stripe aún, lo forzamos a 402.
+  if (!status || (status !== 'active' && status !== 'trialing')) {
+    return res.status(402).json({ 
+      message: 'Subscripción inactiva o requerida', 
+      code: 'PAYMENT_REQUIRED',
+      businessId: req.user.businessId
+    });
+  }
+
+  // Verifica expiración del trial
+  if (status === 'trialing' && trialEnds && now > trialEnds) {
+     return res.status(402).json({ 
+      message: 'Tu prueba gratuita ha expirado', 
+      code: 'TRIAL_EXPIRED',
+      businessId: req.user.businessId
+    });
   }
 
   next();

@@ -28,7 +28,6 @@ const serializeUser = (user) => {
     username: user.username,
     telefono: user.telefono,
     role: user.role,
-    password: user.passwordPlain,
     createdAt: user.createdAt,
     barberoId: barberoProfile?.id ?? null,
     barberoNombre: barberoProfile?.nombre ?? null,
@@ -117,7 +116,6 @@ router.post('/', async (req, res, next) => {
       data: {
         username,
         passwordHash: hash,
-        passwordPlain: password,
         telefono: telefono || null,
         role,
         businessId: req.user.businessId,
@@ -189,7 +187,6 @@ router.patch('/:id', async (req, res, next) => {
     const data = {};
     if (password) {
       data.passwordHash = await bcrypt.hash(password, 10);
-      data.passwordPlain = password;
     }
     if (telefono !== undefined) {
       data.telefono = telefono;

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../api/client.js';
 import { Store, User, Lock, Phone, ArrowRight } from 'lucide-react';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const plan = searchParams.get('plan');
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     businessName: '',
@@ -90,13 +92,21 @@ const RegisterPage = () => {
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 dark:bg-slate-950">
       <div className="w-full max-w-md space-y-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-2xl backdrop-blur-sm dark:border-slate-800/80 dark:bg-slate-900/60">
         <div className="text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-400 to-emerald-600 text-3xl">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-purple-400 to-blue-600 text-3xl shadow-lg shadow-purple-500/20">
             🚀
           </div>
-          <h2 className="mt-6 text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Crea tu cuenta</h2>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-            Comienza a gestionar tu negocio en minutos
-          </p>
+          <h2 className="mt-6 text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+            Crea tu cuenta de 15 días gratis
+          </h2>
+          {plan ? (
+            <div className="mt-3 inline-block rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm font-medium text-blue-600 dark:border-purple-500/30 dark:bg-purple-500/10 dark:text-purple-400">
+              Has seleccionado el Plan <span className="capitalize">{plan}</span>
+            </div>
+          ) : (
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+              Comienza a gestionar tu negocio en minutos
+            </p>
+          )}
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -113,7 +123,7 @@ const RegisterPage = () => {
                   required
                   value={formData.businessName}
                   onChange={handleChange}
-                  className="block w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 pl-11 text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 sm:text-sm dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:placeholder:text-slate-500"
+                  className="block w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 pl-11 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:placeholder:text-slate-500"
                   placeholder="Barbería Elite"
                 />
                 <Store className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-slate-400 dark:text-slate-500" />
@@ -130,7 +140,7 @@ const RegisterPage = () => {
                   name="giro"
                   required={!showCustomGiro}
                   onChange={handleChange}
-                  className="block w-full appearance-none rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 pl-11 text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 sm:text-sm dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:placeholder:text-slate-500"
+                  className="block w-full appearance-none rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 pl-11 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:placeholder:text-slate-500"
                   defaultValue=""
                 >
                   <option value="" disabled>Selecciona una opción</option>
@@ -156,7 +166,7 @@ const RegisterPage = () => {
                     required
                     value={formData.giro}
                     onChange={(e) => setFormData(prev => ({ ...prev, giro: e.target.value }))}
-                    className="block w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 pl-11 text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 sm:text-sm dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:placeholder:text-slate-500"
+                    className="block w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 pl-11 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:placeholder:text-slate-500"
                     placeholder="Ej. Spa, Taller, Consultorio..."
                   />
                   <Store className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-slate-400 dark:text-slate-500" />
@@ -179,7 +189,7 @@ const RegisterPage = () => {
                   required
                   value={formData.slug}
                   onChange={handleChange}
-                  className="block w-full min-w-0 flex-1 rounded-none rounded-r-xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 sm:text-sm dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:placeholder:text-slate-500"
+                  className="block w-full min-w-0 flex-1 rounded-none rounded-r-xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:placeholder:text-slate-500"
                   placeholder="barberia-elite"
                 />
               </div>
@@ -197,7 +207,7 @@ const RegisterPage = () => {
                   required
                   value={formData.username}
                   onChange={handleChange}
-                  className="block w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 pl-11 text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 sm:text-sm dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:placeholder:text-slate-500"
+                  className="block w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 pl-11 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:placeholder:text-slate-500"
                   placeholder="admin"
                 />
                 <User className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-slate-400 dark:text-slate-500" />
@@ -216,7 +226,7 @@ const RegisterPage = () => {
                   required
                   value={formData.telefono}
                   onChange={handleChange}
-                  className="block w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 pl-11 text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 sm:text-sm dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:placeholder:text-slate-500"
+                  className="block w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 pl-11 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:placeholder:text-slate-500"
                   placeholder="+52 123 456 7890"
                 />
                 <Phone className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-slate-400 dark:text-slate-500" />
@@ -235,7 +245,7 @@ const RegisterPage = () => {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="block w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 pl-11 text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 sm:text-sm dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:placeholder:text-slate-500"
+                  className="block w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 pl-11 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:placeholder:text-slate-500"
                   placeholder="••••••••"
                 />
                 <Lock className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-slate-400 dark:text-slate-500" />
@@ -246,14 +256,14 @@ const RegisterPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 disabled:cursor-not-allowed disabled:opacity-70"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-purple-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {loading ? 'Creando cuenta...' : 'Registrar Negocio'}
             {!loading && <ArrowRight className="h-4 w-4" />}
           </button>
 
           <div className="text-center text-sm">
-            <Link to="/login" className="font-medium text-emerald-400 hover:text-emerald-300">
+            <Link to="/login" className="font-medium text-purple-400 hover:text-purple-300">
               ¿Ya tienes cuenta? Inicia sesión
             </Link>
           </div>

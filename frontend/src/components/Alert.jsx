@@ -1,5 +1,5 @@
 const variants = {
-  success: 'border-emerald-500/60 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200',
+  success: 'border-blue-500/60 bg-blue-500/10 text-blue-700 dark:text-blue-200',
   error: 'border-rose-500/60 bg-rose-500/10 text-rose-700 dark:text-rose-200',
   info: 'border-slate-500/60 bg-slate-500/10 text-slate-700 dark:text-slate-200',
 };

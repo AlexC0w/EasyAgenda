@@ -325,7 +325,7 @@ const BookingPage = () => {
       {view === 'selection' && (
         <div className="space-y-10">
           <div className="text-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600 dark:text-emerald-300">
+            <span className="inline-flex items-center gap-2 rounded-full border border-blue-500/40 bg-blue-500/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-blue-600 dark:text-purple-300">
               <Calendar className="h-3.5 w-3.5" /> Agenda tu experiencia
             </span>
             <h2 className="mt-6 text-4xl font-bold text-slate-900 dark:text-white">Reserva con tu profesional favorito</h2>
@@ -336,7 +336,7 @@ const BookingPage = () => {
 
           <section className="space-y-6">
             <h3 className="flex items-center gap-3 text-xl font-semibold text-slate-900 dark:text-white">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-purple-300">
                 <User className="h-5 w-5" />
               </span>
               Profesionales disponibles
@@ -352,12 +352,12 @@ const BookingPage = () => {
                     onClick={() => setSelectedBarberoId(String(barbero.id))}
                     className={`group rounded-2xl border px-6 py-6 text-left transition-all ${
                       isActive
-                        ? 'border-emerald-500/60 bg-emerald-500/10 shadow-lg shadow-emerald-500/20'
-                        : 'border-slate-200 bg-white hover:border-emerald-400/40 hover:bg-slate-50 dark:border-slate-800/80 dark:bg-slate-900/60 dark:hover:bg-slate-900'
+                        ? 'border-blue-500/60 bg-blue-500/10 shadow-lg shadow-blue-500/20'
+                        : 'border-slate-200 bg-white hover:border-purple-400/40 hover:bg-slate-50 dark:border-slate-800/80 dark:bg-slate-900/60 dark:hover:bg-slate-900'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-lg font-semibold text-emerald-600 dark:bg-slate-800 dark:text-emerald-300">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-lg font-semibold text-blue-600 dark:bg-slate-800 dark:text-purple-300">
                         {initials}
                       </div>
                       <span className="text-xs uppercase tracking-wide text-slate-500">
@@ -383,14 +383,14 @@ const BookingPage = () => {
             <section className="space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="flex items-center gap-3 text-xl font-semibold text-slate-900 dark:text-white">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-purple-300">
                     <Clock className="h-5 w-5" />
                     </span>
                     Selecciona tus servicios
                 </h3>
                 {selectedServices.length > 0 && (
                     <div className="text-right">
-                        <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                        <p className="text-sm font-semibold text-blue-600 dark:text-purple-400">
                             {totalDuration} min · {formatCurrency(totalPrice)}
                         </p>
                     </div>
@@ -406,18 +406,18 @@ const BookingPage = () => {
                       onClick={() => toggleService(servicio.id)}
                       className={`rounded-2xl border p-5 text-left transition-all ${
                         isActive
-                          ? 'border-emerald-500/60 bg-emerald-500/10 shadow-lg shadow-emerald-500/20'
-                          : 'border-slate-200 bg-white hover:border-emerald-400/40 hover:bg-slate-50 dark:border-slate-800/80 dark:bg-slate-900/60 dark:hover:bg-slate-900'
+                          ? 'border-blue-500/60 bg-blue-500/10 shadow-lg shadow-blue-500/20'
+                          : 'border-slate-200 bg-white hover:border-purple-400/40 hover:bg-slate-50 dark:border-slate-800/80 dark:bg-slate-900/60 dark:hover:bg-slate-900'
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className={`flex h-6 w-6 items-center justify-center rounded-full border ${isActive ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-800'}`}>
+                            <div className={`flex h-6 w-6 items-center justify-center rounded-full border ${isActive ? 'border-blue-500 bg-blue-500 text-white' : 'border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-800'}`}>
                                 {isActive && <Check className="h-4 w-4" />}
                             </div>
                             <h4 className="text-lg font-semibold text-slate-900 dark:text-white">{servicio.nombre}</h4>
                         </div>
-                        <span className="text-emerald-600 font-semibold dark:text-emerald-300">{formatCurrency(servicio.precio)}</span>
+                        <span className="text-blue-600 font-semibold dark:text-purple-300">{formatCurrency(servicio.precio)}</span>
                       </div>
                       <p className="mt-2 pl-9 text-sm text-slate-500 dark:text-slate-400">{servicio.duracion} minutos</p>
                     </button>
@@ -432,7 +432,7 @@ const BookingPage = () => {
               <button
                 type="button"
                 onClick={() => setView('calendar')}
-                className="group inline-flex items-center gap-3 rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400 px-8 py-4 text-lg font-semibold text-white shadow-emerald-500/40 transition hover:from-emerald-500 hover:to-emerald-400"
+                className="group inline-flex items-center gap-3 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-purple-400 px-8 py-4 text-lg font-semibold text-white shadow-blue-500/40 transition hover:from-blue-500 hover:to-purple-400"
               >
                 Continuar al calendario
                 <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -453,12 +453,12 @@ const BookingPage = () => {
           </button>
 
           <div className="grid gap-8 lg:grid-cols-[2fr,1fr]">
-            <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-emerald-500/5 dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-emerald-500/10">
+            <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-blue-500/5 dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-blue-500/10">
               <header className="flex items-center justify-between">
                 <button
                   type="button"
                   onClick={() => handleMonthShift(-1)}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-emerald-500/40 hover:text-emerald-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-blue-500/40 hover:text-blue-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
@@ -466,12 +466,12 @@ const BookingPage = () => {
                   <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
                     {monthCursor.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })}
                   </h3>
-                  <p className="text-xs uppercase tracking-[0.3em] text-emerald-600/70 dark:text-emerald-300/70">Disponibilidad</p>
+                  <p className="text-xs uppercase tracking-[0.3em] text-blue-600/70 dark:text-purple-300/70">Disponibilidad</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleMonthShift(1)}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-emerald-500/40 hover:text-emerald-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-blue-500/40 hover:text-blue-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
                 >
                   <ChevronRight className="h-5 w-5" />
                 </button>
@@ -503,8 +503,8 @@ const BookingPage = () => {
                         !selectable
                           ? 'cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300 dark:border-slate-900/60 dark:bg-slate-950/40 dark:text-slate-700'
                           : selected
-                          ? 'border-emerald-500/60 bg-emerald-500/20 text-emerald-700 shadow-lg shadow-emerald-500/20 dark:text-white'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-400/40 hover:text-emerald-600 dark:border-slate-800/80 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:text-white'
+                          ? 'border-blue-500/60 bg-blue-500/20 text-blue-700 shadow-lg shadow-blue-500/20 dark:text-white'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-purple-400/40 hover:text-blue-600 dark:border-slate-800/80 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:text-white'
                       }`}
                     >
                       {date.getDate()}
@@ -515,9 +515,9 @@ const BookingPage = () => {
             </section>
 
             <aside className="space-y-6">
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-emerald-500/5 dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-emerald-500/10">
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-blue-500/5 dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-blue-500/10">
                 <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
-                  <Clock className="h-5 w-5 text-emerald-600 dark:text-emerald-300" /> Horarios disponibles
+                  <Clock className="h-5 w-5 text-blue-600 dark:text-purple-300" /> Horarios disponibles
                 </h3>
                 <p className="mt-1 text-xs uppercase tracking-[0.3em] text-slate-500">
                   {selectedBarbero?.nombre}
@@ -543,8 +543,8 @@ const BookingPage = () => {
                         onClick={() => setSelectedTime(slot)}
                         className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${
                           selectedTime === slot
-                            ? 'border-emerald-500/60 bg-emerald-500/20 text-emerald-700 shadow-emerald-500/20 dark:text-white'
-                            : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-400/40 hover:text-emerald-600 dark:border-slate-800/80 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:text-white'
+                            ? 'border-blue-500/60 bg-blue-500/20 text-blue-700 shadow-blue-500/20 dark:text-white'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-purple-400/40 hover:text-blue-600 dark:border-slate-800/80 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:text-white'
                         }`}
                       >
                         {slot}
@@ -556,10 +556,10 @@ const BookingPage = () => {
               {selectedTime && (
                   <form
                   onSubmit={handleSubmit}
-                  className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-emerald-500/5 dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-emerald-500/10"
+                  className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-blue-500/5 dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-blue-500/10"
                 >
                   <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
-                    <User className="h-5 w-5 text-emerald-600 dark:text-emerald-300" /> Tus datos
+                    <User className="h-5 w-5 text-blue-600 dark:text-purple-300" /> Tus datos
                   </h3>
                   <div className="space-y-4">
                     <label className="flex flex-col gap-2 text-sm">
@@ -572,7 +572,7 @@ const BookingPage = () => {
                             setFormData((prev) => ({ ...prev, nombre: event.target.value }))
                           }
                           required
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pl-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pl-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
                           placeholder="Juan Pérez"
                         />
                         <User className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-500" />
@@ -584,7 +584,7 @@ const BookingPage = () => {
                         <select
                           value={formData.countryCode || '52'}
                           onChange={(e) => setFormData(prev => ({ ...prev, countryCode: e.target.value }))}
-                          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-900 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                         >
                           <option value="52">🇲🇽 +52</option>
                           <option value="1">🇺🇸 +1</option>
@@ -602,7 +602,7 @@ const BookingPage = () => {
                               setFormData((prev) => ({ ...prev, telefono: event.target.value.replace(/\D/g, '') }))
                             }
                             required
-                            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pl-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
+                            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pl-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
                             placeholder="614 123 4567"
                           />
                           <Phone className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-500" />
@@ -618,7 +618,7 @@ const BookingPage = () => {
                           onChange={(event) =>
                             setFormData((prev) => ({ ...prev, email: event.target.value }))
                           }
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pl-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pl-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
                           placeholder="correo@ejemplo.com"
                         />
                         <Mail className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-500" />
@@ -628,7 +628,7 @@ const BookingPage = () => {
                   <button
                     type="submit"
                     disabled={bookingLoading}
-                    className="w-full rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400 px-6 py-3 text-sm font-semibold text-white shadow-emerald-500/30 transition hover:from-emerald-500 hover:to-emerald-400 disabled:cursor-not-allowed disabled:opacity-70"
+                    className="w-full rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-purple-400 px-6 py-3 text-sm font-semibold text-white shadow-blue-500/30 transition hover:from-blue-500 hover:to-purple-400 disabled:cursor-not-allowed disabled:opacity-70"
                   >
                     {bookingLoading ? 'Procesando…' : 'Confirmar reserva'}
                   </button>
@@ -641,15 +641,15 @@ const BookingPage = () => {
 
       {view === 'confirmation' && confirmation && (
         <div className="mx-auto max-w-2xl space-y-6 text-center">
-          <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-emerald-500/10">
-            <Check className="h-12 w-12 text-emerald-300" />
+          <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-blue-500/10">
+            <Check className="h-12 w-12 text-purple-300" />
           </div>
           <h2 className="text-4xl font-bold text-slate-900 dark:text-white">¡Tu cita está confirmada!</h2>
           <p className="text-slate-600 dark:text-slate-400">
             Te hemos enviado un mensaje de WhatsApp con los detalles de tu reserva.
           </p>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 text-left shadow-xl shadow-emerald-500/5 dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-emerald-500/10">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 text-left shadow-xl shadow-blue-500/5 dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-blue-500/10">
             <dl className="space-y-4 text-sm">
               <div className="flex items-center justify-between">
                 <dt className="text-slate-600 dark:text-slate-400">Profesional</dt>
@@ -680,7 +680,7 @@ const BookingPage = () => {
               </div>
               <div className="flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-800">
                 <dt className="text-slate-600 dark:text-slate-400">Total</dt>
-                <dd className="text-xl font-bold text-emerald-600 dark:text-emerald-300">
+                <dd className="text-xl font-bold text-blue-600 dark:text-purple-300">
                   {formatCurrency(confirmation.servicios.reduce((sum, s) => sum + Number(s.precio), 0))}
                 </dd>
               </div>
@@ -690,7 +690,7 @@ const BookingPage = () => {
           <button
             type="button"
             onClick={resetBooking}
-            className="rounded-2xl border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-emerald-400 hover:bg-slate-50 dark:border-slate-700 dark:text-white dark:hover:bg-slate-900"
+            className="rounded-2xl border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-purple-400 hover:bg-slate-50 dark:border-slate-700 dark:text-white dark:hover:bg-slate-900"
           >
             Agendar otra cita
           </button>

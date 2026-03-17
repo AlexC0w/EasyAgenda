@@ -12,9 +12,13 @@ model Business {
   name      String
   slug      String   @unique
   giro      String   @default("Barbería")
-  status    String   @default("ACTIVE") // ACTIVE, SUSPENDED
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status               String   @default("ACTIVE") // ACTIVE, SUSPENDED
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  subscriptionStatus   String?
+  trialEndsAt          DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   users     User[]
   barberos  Barbero[]
@@ -99,7 +103,6 @@ model User {
   id             Int      @id @default(autoincrement())
   username       String   @unique
   passwordHash   String
-  passwordPlain  String   // TODO: Remove in production
   telefono       String?
   role           UserRole @default(BARBER)
   barbero        Barbero?
