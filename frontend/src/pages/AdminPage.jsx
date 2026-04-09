@@ -734,16 +734,16 @@ const AdminPage = () => {
             <span className="font-bold">⚠️ Configuración de WhatsApp pendiente</span>
             <p>
               El proveedor de WhatsApp reportó que no hay un número vinculado. 
-              Por favor, ve a tu panel de proveedor (Gratbe Labs) y escanea el código QR para conectar tu WhatsApp.
+              Por favor, ve a tu panel de proveedor (Shessai) y escanea el código QR para conectar tu WhatsApp.
             </p>
             <div className="flex flex-wrap gap-2">
               <a 
-                href="https://app.gratbelabs.com" 
+                href="https://app.shessai.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="rounded-lg bg-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-500/30 dark:text-blue-200"
               >
-                Ir a Gratbe Labs ↗
+                Ir a Shessai ↗
               </a>
               <button 
                 onClick={async () => {

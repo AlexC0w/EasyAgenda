@@ -74,7 +74,7 @@ Agenda Octane es una solución fullstack para gestionar reservas de una barberí
   - `src/routes/disponibles.js`: Calcula horarios libres.
   - `src/routes/citas.js`: Registro, consulta, actualización de citas.
   - `src/lib/sendWhatsApp.js`: Integración simulada/real con API de WhatsApp.
-    - Listo para Gratbelabs: envía `number` y `body` con encabezado Bearer configurado por variables de entorno.
+    - Listo para Shessai: envía `number` y `body` con encabezado Bearer configurado por variables de entorno.
   - `src/jobs/reminderJob.js`: Cron job de recordatorios.
 
 ### Endpoints principales
@@ -110,7 +110,7 @@ Agenda Octane es una solución fullstack para gestionar reservas de una barberí
 | -------- | ----------- |
 | `DATABASE_URL` | Cadena de conexión MariaDB usada por Prisma. |
 | `PORT` | Puerto HTTP del servidor Express (por defecto `4000`). |
-| `WHATSAPP_API_URL` | URL de la API externa de WhatsApp (usa `https://appapi.gratbelabs.com/api/messages/send` para Gratbelabs). |
+| `WHATSAPP_API_URL` | URL de la API externa de WhatsApp (usa `https://api.shessai.com/api/messages/send` para Shessai). |
 | `WHATSAPP_API_KEY` | Token Bearer para la API de WhatsApp (por ejemplo `Alex` para el entorno de pruebas). |
 | `WHATSAPP_DEFAULT_COUNTRY_CODE` | (Opcional) Prefijo numérico para completar teléfonos locales, por ejemplo `52` para México. |
 | `JWT_SECRET` | Clave usada para firmar los tokens de acceso. |
@@ -144,7 +144,7 @@ Los números telefónicos se normalizan eliminando caracteres no numéricos y ap
 
 ## 🔒 Consideraciones de producción
 
-- Configura un servicio real para WhatsApp (el proyecto incluye integración lista para Gratbelabs; ajusta la URL y el token si usas otro proveedor).
+- Configura un servicio real para WhatsApp (el proyecto incluye integración lista para Shessai; ajusta la URL y el token si usas otro proveedor).
 - Implementa HTTPS y autenticación para los endpoints administrativos.
 - Añade monitoreo para el cron job y colas de envío si el volumen de citas aumenta.
 - Define mecanismos de reintentos/logging persistente para el módulo de notificaciones.
