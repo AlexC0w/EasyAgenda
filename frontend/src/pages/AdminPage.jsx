@@ -49,6 +49,7 @@ const createEmptyBarberProfile = () => ({
   horarioFin: '18:00',
   duracionCita: 30,
   diasLaborales: [],
+  horariosEspeciales: {},
 });
 
 const createInitialUserForm = () => ({
@@ -71,6 +72,7 @@ const toEditableBarberProfile = (profile) => ({
   horarioFin: profile?.horario_fin ?? '18:00',
   duracionCita: profile?.duracion_cita ?? 30,
   diasLaborales: Array.isArray(profile?.dias_laborales) ? profile.dias_laborales : [],
+  horariosEspeciales: profile?.horarios_especiales ?? {},
 });
 
 const formatCurrency = (value) =>
@@ -388,14 +390,42 @@ const AdminPage = () => {
       const diasLaborales = alreadySelected
         ? prev.barberoProfile.diasLaborales.filter((item) => item !== day)
         : [...prev.barberoProfile.diasLaborales, day];
+      const horariosEspeciales = { ...prev.barberoProfile.horariosEspeciales };
+      if (alreadySelected) delete horariosEspeciales[day];
       return {
         ...prev,
         barberoProfile: {
           ...prev.barberoProfile,
           diasLaborales,
+          horariosEspeciales,
         },
       };
     });
+  };
+
+  const handleUserBarberSpecialScheduleToggle = (day) => {
+    setUserForm((prev) => {
+      const horariosEspeciales = { ...prev.barberoProfile.horariosEspeciales };
+      if (horariosEspeciales[day]) {
+        delete horariosEspeciales[day];
+      } else {
+        horariosEspeciales[day] = { inicio: prev.barberoProfile.horarioInicio, fin: prev.barberoProfile.horarioFin };
+      }
+      return { ...prev, barberoProfile: { ...prev.barberoProfile, horariosEspeciales } };
+    });
+  };
+
+  const handleUserBarberSpecialScheduleChange = (day, field, value) => {
+    setUserForm((prev) => ({
+      ...prev,
+      barberoProfile: {
+        ...prev.barberoProfile,
+        horariosEspeciales: {
+          ...prev.barberoProfile.horariosEspeciales,
+          [day]: { ...prev.barberoProfile.horariosEspeciales[day], [field]: value },
+        },
+      },
+    }));
   };
 
   const openBarberProfileEditor = (userItem) => {
@@ -418,13 +448,38 @@ const AdminPage = () => {
   const handleBarberProfileDayToggle = (day) => {
     setBarberProfileForm((prev) => {
       const alreadySelected = prev.diasLaborales.includes(day);
+      const horariosEspeciales = { ...prev.horariosEspeciales };
+      if (alreadySelected) delete horariosEspeciales[day];
       return {
         ...prev,
         diasLaborales: alreadySelected
           ? prev.diasLaborales.filter((item) => item !== day)
           : [...prev.diasLaborales, day],
+        horariosEspeciales,
       };
     });
+  };
+
+  const handleBarberProfileSpecialScheduleToggle = (day) => {
+    setBarberProfileForm((prev) => {
+      const horariosEspeciales = { ...prev.horariosEspeciales };
+      if (horariosEspeciales[day]) {
+        delete horariosEspeciales[day];
+      } else {
+        horariosEspeciales[day] = { inicio: prev.horarioInicio, fin: prev.horarioFin };
+      }
+      return { ...prev, horariosEspeciales };
+    });
+  };
+
+  const handleBarberProfileSpecialScheduleChange = (day, field, value) => {
+    setBarberProfileForm((prev) => ({
+      ...prev,
+      horariosEspeciales: {
+        ...prev.horariosEspeciales,
+        [day]: { ...prev.horariosEspeciales[day], [field]: value },
+      },
+    }));
   };
 
   const handleSaveBarberProfile = async (event) => {
@@ -458,6 +513,7 @@ const AdminPage = () => {
           horarioFin: barberProfileForm.horarioFin,
           duracionCita: duration,
           diasLaborales: barberProfileForm.diasLaborales,
+          horariosEspeciales: barberProfileForm.horariosEspeciales,
         },
       };
       const { data } = await api.patch(`/users/${selectedBarberUserId}`, payload);
@@ -563,13 +619,14 @@ const AdminPage = () => {
       }
 
       if (payload.role === 'BARBER') {
-        const { nombre, horarioInicio, horarioFin, duracionCita, diasLaborales } = userForm.barberoProfile;
+        const { nombre, horarioInicio, horarioFin, duracionCita, diasLaborales, horariosEspeciales } = userForm.barberoProfile;
         payload.barberoProfile = {
           nombre: nombre.trim(),
           horarioInicio,
           horarioFin,
           duracionCita: Number(duracionCita),
           diasLaborales,
+          horariosEspeciales,
         };
         if (!payload.barberoProfile.nombre) {
           setStatus({ state: 'error', message: 'Debes indicar el nombre del profesional.' });
@@ -1375,22 +1432,64 @@ const AdminPage = () => {
                     <div className="mt-2 flex flex-wrap gap-2">
                       {dayOptions.map((day) => {
                         const active = barberProfileForm.diasLaborales.includes(day.value);
+                        const hasSpecial = !!barberProfileForm.horariosEspeciales?.[day.value];
                         return (
-                          <button
-                            key={day.value}
-                            type="button"
-                            onClick={() => handleBarberProfileDayToggle(day.value)}
-                            className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                              active
-                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/60'
-                                : 'border border-slate-700/70 text-slate-400 hover:border-emerald-400/60 hover:text-emerald-200'
-                            }`}
-                          >
-                            {day.label}
-                          </button>
+                          <div key={day.value} className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleBarberProfileDayToggle(day.value)}
+                              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                                active
+                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/60'
+                                  : 'border border-slate-700/70 text-slate-400 hover:border-emerald-400/60 hover:text-emerald-200'
+                              }`}
+                            >
+                              {day.label}
+                            </button>
+                            {active && (
+                              <button
+                                type="button"
+                                onClick={() => handleBarberProfileSpecialScheduleToggle(day.value)}
+                                className={`rounded-full px-2 py-1 text-xs transition ${
+                                  hasSpecial
+                                    ? 'text-emerald-300 bg-emerald-500/20 border border-emerald-400/60'
+                                    : 'text-slate-500 border border-slate-700/50 hover:text-emerald-300 hover:border-emerald-400/40'
+                                }`}
+                                title={hasSpecial ? 'Quitar horario especial' : 'Agregar horario especial'}
+                              >
+                                {hasSpecial ? '⏰' : '+'}
+                              </button>
+                            )}
+                          </div>
                         );
                       })}
                     </div>
+                    {barberProfileForm.diasLaborales.some((d) => barberProfileForm.horariosEspeciales?.[d]) && (
+                      <div className="mt-3 space-y-2">
+                        {barberProfileForm.diasLaborales.filter((d) => barberProfileForm.horariosEspeciales?.[d]).map((dayValue) => {
+                          const dayLabel = dayOptions.find((d) => d.value === dayValue)?.label;
+                          const special = barberProfileForm.horariosEspeciales[dayValue];
+                          return (
+                            <div key={dayValue} className="flex items-center gap-2">
+                              <span className="w-20 text-xs font-semibold text-emerald-400">{dayLabel}</span>
+                              <input
+                                type="time"
+                                value={special.inicio}
+                                onChange={(e) => handleBarberProfileSpecialScheduleChange(dayValue, 'inicio', e.target.value)}
+                                className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white focus:border-emerald-400 focus:outline-none"
+                              />
+                              <span className="text-xs text-slate-500">–</span>
+                              <input
+                                type="time"
+                                value={special.fin}
+                                onChange={(e) => handleBarberProfileSpecialScheduleChange(dayValue, 'fin', e.target.value)}
+                                className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white focus:border-emerald-400 focus:outline-none"
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-wrap justify-end gap-3">
@@ -1523,22 +1622,64 @@ const AdminPage = () => {
                       <div className="mt-2 flex flex-wrap gap-2">
                         {dayOptions.map((day) => {
                           const active = userForm.barberoProfile.diasLaborales.includes(day.value);
+                          const hasSpecial = !!userForm.barberoProfile.horariosEspeciales?.[day.value];
                           return (
-                            <button
-                              key={day.value}
-                              type="button"
-                              onClick={() => handleUserBarberDayToggle(day.value)}
-                              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                                active
-                                  ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/50 dark:text-emerald-300 dark:border-emerald-400/60'
-                                  : 'border border-slate-300 text-slate-600 hover:border-emerald-400/60 hover:text-emerald-600 dark:border-slate-700/70 dark:text-slate-400 dark:hover:text-emerald-200'
-                              }`}
-                            >
-                              {day.label}
-                            </button>
+                            <div key={day.value} className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleUserBarberDayToggle(day.value)}
+                                className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                                  active
+                                    ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/50 dark:text-emerald-300 dark:border-emerald-400/60'
+                                    : 'border border-slate-300 text-slate-600 hover:border-emerald-400/60 hover:text-emerald-600 dark:border-slate-700/70 dark:text-slate-400 dark:hover:text-emerald-200'
+                                }`}
+                              >
+                                {day.label}
+                              </button>
+                              {active && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleUserBarberSpecialScheduleToggle(day.value)}
+                                  className={`rounded-full px-2 py-1 text-xs transition ${
+                                    hasSpecial
+                                      ? 'text-emerald-600 bg-emerald-500/20 border border-emerald-500/50 dark:text-emerald-300 dark:border-emerald-400/60'
+                                      : 'text-slate-400 border border-slate-300 hover:text-emerald-600 hover:border-emerald-400/60 dark:border-slate-700/50 dark:hover:text-emerald-300'
+                                  }`}
+                                  title={hasSpecial ? 'Quitar horario especial' : 'Agregar horario especial'}
+                                >
+                                  {hasSpecial ? '⏰' : '+'}
+                                </button>
+                              )}
+                            </div>
                           );
                         })}
                       </div>
+                      {userForm.barberoProfile.diasLaborales.some((d) => userForm.barberoProfile.horariosEspeciales?.[d]) && (
+                        <div className="mt-3 space-y-2">
+                          {userForm.barberoProfile.diasLaborales.filter((d) => userForm.barberoProfile.horariosEspeciales?.[d]).map((dayValue) => {
+                            const dayLabel = dayOptions.find((d) => d.value === dayValue)?.label;
+                            const special = userForm.barberoProfile.horariosEspeciales[dayValue];
+                            return (
+                              <div key={dayValue} className="flex items-center gap-2">
+                                <span className="w-20 text-xs font-semibold text-emerald-600 dark:text-emerald-400">{dayLabel}</span>
+                                <input
+                                  type="time"
+                                  value={special.inicio}
+                                  onChange={(e) => handleUserBarberSpecialScheduleChange(dayValue, 'inicio', e.target.value)}
+                                  className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-900 focus:border-emerald-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                                />
+                                <span className="text-xs text-slate-400">–</span>
+                                <input
+                                  type="time"
+                                  value={special.fin}
+                                  onChange={(e) => handleUserBarberSpecialScheduleChange(dayValue, 'fin', e.target.value)}
+                                  className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-900 focus:border-emerald-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                                />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

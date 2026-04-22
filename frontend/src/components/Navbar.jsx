@@ -10,10 +10,13 @@ const Navbar = ({ businessName, businessGiro, theme, toggleTheme }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Check if we are in a booking flow (dynamic slug) or admin/auth flow
-  const isBookingPage = location.pathname !== '/' && 
-                        location.pathname !== '/login' && 
-                        location.pathname !== '/register' && 
-                        !location.pathname.startsWith('/admin');
+  const isBookingPage = location.pathname !== '/' &&
+                        location.pathname !== '/login' &&
+                        location.pathname !== '/register' &&
+                        !location.pathname.startsWith('/admin') &&
+                        !location.pathname.startsWith('/superadmin');
+
+  const adminPath = user?.role === 'SUPERADMIN' ? '/superadmin' : '/admin';
 
   const handleLogout = () => {
     logout();
@@ -56,7 +59,7 @@ const Navbar = ({ businessName, businessGiro, theme, toggleTheme }) => {
                 )}
                 
                 <NavLink
-                to="/admin"
+                to={adminPath}
                 className={({ isActive }) =>
                     `flex items-center gap-2 rounded-full border border-transparent px-4 py-2 transition ${
                     isActive
@@ -145,7 +148,7 @@ const Navbar = ({ businessName, businessGiro, theme, toggleTheme }) => {
             )}
             
             <NavLink
-            to="/admin"
+            to={adminPath}
             onClick={() => setIsMobileMenuOpen(false)}
             className={({ isActive }) =>
                 `flex items-center gap-2 rounded-lg px-4 py-3 transition ${

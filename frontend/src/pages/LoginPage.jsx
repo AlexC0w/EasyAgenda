@@ -24,9 +24,13 @@ const LoginPage = () => {
     }
     setSubmitting(true);
     try {
-      await login(form);
-      const from = location.state?.from?.pathname || '/admin';
-      navigate(from, { replace: true });
+      const loggedUser = await login(form);
+      if (loggedUser?.role === 'SUPERADMIN') {
+        navigate('/superadmin', { replace: true });
+      } else {
+        const from = location.state?.from?.pathname || '/admin';
+        navigate(from, { replace: true });
+      }
       toast.success('Bienvenido de nuevo');
     } catch (error) {
       console.error(error);
