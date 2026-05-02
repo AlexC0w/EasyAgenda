@@ -19,7 +19,7 @@ const Navbar = ({ businessName, businessGiro, theme, toggleTheme }) => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/login');
     setIsMobileMenuOpen(false);
   };
 

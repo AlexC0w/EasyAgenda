@@ -85,7 +85,7 @@ const AppShell = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/login');
   };
 
   const isSuperAdminRoute = location.pathname.startsWith('/superadmin');
