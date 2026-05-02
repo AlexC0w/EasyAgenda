@@ -6,7 +6,7 @@ const api = axios.create({
 
 console.log('--- [Frontend Debug] API Base URL:', api.defaults.baseURL);
 
-const storedToken = typeof window !== 'undefined' ? localStorage.getItem('agenda_octane_token') : null;
+const storedToken = typeof window !== 'undefined' ? localStorage.getItem('agenda_shessai_token') : null;
 
 if (storedToken) {
   api.defaults.headers.common.Authorization = `Bearer ${storedToken}`;
@@ -16,7 +16,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('agenda_octane_token');
+      localStorage.removeItem('agenda_shessai_token');
       delete api.defaults.headers.common.Authorization;
     }
     if (error.response?.status === 403 && error.response?.data?.code === 'ACCOUNT_SUSPENDED') {

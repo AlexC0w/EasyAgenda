@@ -20,7 +20,7 @@ const AppShell = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [businessName, setBusinessName] = useState('Agenda Octane');
+  const [businessName, setBusinessName] = useState('Agenda Shessai');
   const [businessGiro, setBusinessGiro] = useState('Barber Studio');
   
   const [theme, setTheme] = useState(() => {
@@ -74,7 +74,7 @@ const AppShell = () => {
           console.error('Error fetching business name', e);
         }
       } else {
-        setBusinessName('Agenda Octane');
+        setBusinessName('Agenda Shessai');
         setBusinessGiro('Plataforma de Reservas');
       }
     };
@@ -87,14 +87,20 @@ const AppShell = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
-      <Navbar 
-        businessName={businessName} 
-        businessGiro={businessGiro} 
-        theme={theme} 
-        toggleTheme={toggleTheme} 
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F1A] text-slate-900 dark:text-slate-100 transition-colors duration-300">
+      <Navbar
+        businessName={businessName}
+        businessGiro={businessGiro}
+        theme={theme}
+        toggleTheme={toggleTheme}
       />
-      <main className="mx-auto max-w-6xl px-4 py-10">
+      {/* Dark mode glow overlay */}
+      <div className="pointer-events-none fixed inset-0 -z-10 hidden dark:block"
+        style={{
+          background: 'radial-gradient(ellipse 80rem 50rem at top, rgba(3,153,255,0.07), transparent 60%), radial-gradient(ellipse 60rem 40rem at 80% 90%, rgba(42,209,201,0.05), transparent 55%)'
+        }}
+      />
+      <main className="mx-auto w-full max-w-7xl px-4 py-8">
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/suspended" element={<SuspendedPage />} />

@@ -99,7 +99,6 @@ model User {
   id             Int      @id @default(autoincrement())
   username       String   @unique
   passwordHash   String
-  passwordPlain  String   // TODO: Remove in production
   telefono       String?
   role           UserRole @default(BARBER)
   barbero        Barbero?
