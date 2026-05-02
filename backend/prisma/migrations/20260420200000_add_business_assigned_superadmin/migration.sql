@@ -1,0 +1,1 @@
+ALTER TABLE `Business` ADD COLUMN IF NOT EXISTS `assignedSuperAdminId` INT NULL;

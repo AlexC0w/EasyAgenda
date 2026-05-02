@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import LandingPage from './pages/LandingPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import ConfirmationPage from './pages/ConfirmationPage.jsx';
+import SuperAdminPage from './pages/SuperAdminPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { useAuth } from './context/AuthContext.jsx';
 
@@ -21,7 +22,7 @@ const AppShell = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [businessName, setBusinessName] = useState('Agenda Shessai');
-  const [businessGiro, setBusinessGiro] = useState('Barber Studio');
+  const [businessGiro, setBusinessGiro] = useState('Plataforma de Reservas');
   
   const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -45,10 +46,11 @@ const AppShell = () => {
   };
   
   // Check if we are in a booking flow (dynamic slug) or admin/auth flow
-  const isBookingPage = location.pathname !== '/' && 
-                        location.pathname !== '/login' && 
-                        location.pathname !== '/register' && 
-                        !location.pathname.startsWith('/admin');
+  const isBookingPage = location.pathname !== '/' &&
+                        location.pathname !== '/login' &&
+                        location.pathname !== '/register' &&
+                        !location.pathname.startsWith('/admin') &&
+                        !location.pathname.startsWith('/superadmin');
 
   // Extract slug from path if in booking page
   const slug = isBookingPage ? location.pathname.split('/')[1] : null;
@@ -86,21 +88,25 @@ const AppShell = () => {
     navigate('/');
   };
 
+  const isSuperAdminRoute = location.pathname.startsWith('/superadmin');
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F1A] text-slate-900 dark:text-slate-100 transition-colors duration-300">
-      <Navbar
-        businessName={businessName}
-        businessGiro={businessGiro}
-        theme={theme}
-        toggleTheme={toggleTheme}
-      />
+      {!isSuperAdminRoute && (
+        <Navbar
+          businessName={businessName}
+          businessGiro={businessGiro}
+          theme={theme}
+          toggleTheme={toggleTheme}
+        />
+      )}
       {/* Dark mode glow overlay */}
       <div className="pointer-events-none fixed inset-0 -z-10 hidden dark:block"
         style={{
           background: 'radial-gradient(ellipse 80rem 50rem at top, rgba(3,153,255,0.07), transparent 60%), radial-gradient(ellipse 60rem 40rem at 80% 90%, rgba(42,209,201,0.05), transparent 55%)'
         }}
       />
-      <main className="mx-auto w-full max-w-7xl px-4 py-8">
+      <main className={isSuperAdminRoute ? '' : 'mx-auto w-full max-w-7xl px-4 py-8'}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/suspended" element={<SuspendedPage />} />
@@ -112,6 +118,14 @@ const AppShell = () => {
             element={
               <ProtectedRoute roles={['ADMIN', 'BARBER']}>
                 <AdminPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/superadmin/*"
+            element={
+              <ProtectedRoute roles={['SUPERADMIN']}>
+                <SuperAdminPage />
               </ProtectedRoute>
             }
           />
