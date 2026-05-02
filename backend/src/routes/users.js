@@ -17,6 +17,7 @@ const serializeBarbero = (barbero) => {
     horario_fin: barbero.horario_fin,
     duracion_cita: barbero.duracion_cita,
     dias_laborales: JSON.parse(barbero.dias_laborales || '[]'),
+    horarios_especiales: JSON.parse(barbero.horarios_especiales || '{}'),
     userId: barbero.userId,
   };
 };
@@ -56,6 +57,15 @@ const buildBarberoData = (profile) => {
       )
     : [];
 
+  const horariosEspecialesInput = profile.horarios_especiales || profile.horariosEspeciales || {};
+  const horariosEspeciales = {};
+  for (const [day, horario] of Object.entries(horariosEspecialesInput)) {
+    const dayNorm = String(day).toLowerCase();
+    if (allowedDays.has(dayNorm) && horario?.inicio && horario?.fin) {
+      horariosEspeciales[dayNorm] = { inicio: horario.inicio, fin: horario.fin };
+    }
+  }
+
   if (!nombre) {
     throw new Error('El nombre del barbero es obligatorio.');
   }
@@ -75,6 +85,7 @@ const buildBarberoData = (profile) => {
     horario_fin: horarioFin,
     duracion_cita: Math.round(duracion),
     dias_laborales: JSON.stringify(dias),
+    horarios_especiales: JSON.stringify(horariosEspeciales),
   };
 };
 

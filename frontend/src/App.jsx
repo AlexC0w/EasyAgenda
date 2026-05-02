@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import LandingPage from './pages/LandingPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import ConfirmationPage from './pages/ConfirmationPage.jsx';
+import SuperAdminPage from './pages/SuperAdminPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { useAuth } from './context/AuthContext.jsx';
 
@@ -20,8 +21,8 @@ const AppShell = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [businessName, setBusinessName] = useState('Agenda Octane');
-  const [businessGiro, setBusinessGiro] = useState('Barber Studio');
+  const [businessName, setBusinessName] = useState('Agenda Shessai');
+  const [businessGiro, setBusinessGiro] = useState('Plataforma de Reservas');
   
   const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -45,10 +46,11 @@ const AppShell = () => {
   };
   
   // Check if we are in a booking flow (dynamic slug) or admin/auth flow
-  const isBookingPage = location.pathname !== '/' && 
-                        location.pathname !== '/login' && 
-                        location.pathname !== '/register' && 
-                        !location.pathname.startsWith('/admin');
+  const isBookingPage = location.pathname !== '/' &&
+                        location.pathname !== '/login' &&
+                        location.pathname !== '/register' &&
+                        !location.pathname.startsWith('/admin') &&
+                        !location.pathname.startsWith('/superadmin');
 
   // Extract slug from path if in booking page
   const slug = isBookingPage ? location.pathname.split('/')[1] : null;
@@ -74,7 +76,7 @@ const AppShell = () => {
           console.error('Error fetching business name', e);
         }
       } else {
-        setBusinessName('Agenda Octane');
+        setBusinessName('Agenda Shessai');
         setBusinessGiro('Plataforma de Reservas');
       }
     };
@@ -86,15 +88,19 @@ const AppShell = () => {
     navigate('/');
   };
 
+  const isSuperAdminRoute = location.pathname.startsWith('/superadmin');
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
-      <Navbar 
-        businessName={businessName} 
-        businessGiro={businessGiro} 
-        theme={theme} 
-        toggleTheme={toggleTheme} 
-      />
-      <main className="mx-auto max-w-6xl px-4 py-10">
+      {!isSuperAdminRoute && (
+        <Navbar
+          businessName={businessName}
+          businessGiro={businessGiro}
+          theme={theme}
+          toggleTheme={toggleTheme}
+        />
+      )}
+      <main className={isSuperAdminRoute ? '' : 'mx-auto max-w-6xl px-4 py-10'}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/suspended" element={<SuspendedPage />} />
@@ -106,6 +112,14 @@ const AppShell = () => {
             element={
               <ProtectedRoute roles={['ADMIN', 'BARBER']}>
                 <AdminPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/superadmin/*"
+            element={
+              <ProtectedRoute roles={['SUPERADMIN']}>
+                <SuperAdminPage />
               </ProtectedRoute>
             }
           />

@@ -48,8 +48,10 @@ export const getAvailability = async (barberoId, fechaISO, options = {}) => {
     return [];
   }
 
-  const inicio = toMinutes(barbero.horario_inicio);
-  const fin = toMinutes(barbero.horario_fin);
+  const horariosEspeciales = JSON.parse(barbero.horarios_especiales || '{}');
+  const horarioDelDia = horariosEspeciales[dayName];
+  const inicio = toMinutes(horarioDelDia?.inicio || barbero.horario_inicio);
+  const fin = toMinutes(horarioDelDia?.fin || barbero.horario_fin);
 
   const citas = await prisma.cita.findMany({
     where: {

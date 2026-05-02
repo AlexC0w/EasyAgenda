@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Agenda Octane',
-        short_name: 'Octane',
+        name: 'Agenda Shessai',
+        short_name: 'Shessai',
         description: 'Gestión profesional de agenda para barberías',
         theme_color: '#0f172a',
         background_color: '#0f172a',

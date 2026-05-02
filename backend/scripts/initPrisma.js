@@ -26,10 +26,11 @@ function main() {
     const stderr = migrate.stderr ?? '';
     const message = typeof stderr === 'string' ? stderr : '';
     const alreadyExists = message.includes('P3018') && message.includes('already exists');
+    const failedMigrations = message.includes('P3009');
 
-    if (alreadyExists) {
-      console.log('\nDetected existing tables; running `prisma db push` to align schema...');
-      const push = run('npx', ['prisma', 'db', 'push']);
+    if (alreadyExists || failedMigrations) {
+      console.log('\nDetected migration issue; running \`prisma db push\` to align schema...');
+      const push = run('npx', ['prisma', 'db', 'push', '--accept-data-loss']);
       if (push.status !== 0) {
         process.exit(push.status ?? 1);
       }

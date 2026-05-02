@@ -16,6 +16,8 @@ model Business {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  assignedSuperAdminId Int?
+
   users     User[]
   barberos  Barbero[]
   servicios Servicio[]
@@ -28,7 +30,8 @@ model Barbero {
   nombre         String
   horario_inicio String
   horario_fin    String
-  dias_laborales String   @default("[]")
+  dias_laborales     String   @default("[]")
+  horarios_especiales String  @default("{}")
   duracion_cita  Int
   citas          Cita[]
   userId         Int?     @unique
@@ -101,8 +104,9 @@ model User {
   passwordHash   String
   passwordPlain  String   // TODO: Remove in production
   telefono       String?
-  role           UserRole @default(BARBER)
-  barbero        Barbero?
+  role                UserRole @default(BARBER)
+  isMasterSuperAdmin  Boolean  @default(false)
+  barbero             Barbero?
   
   businessId     Int      @default(1)
   business       Business @relation(fields: [businessId], references: [id])
@@ -129,6 +133,7 @@ model BusinessSetting {
 }
 
 enum UserRole {
+  SUPERADMIN
   ADMIN
   BARBER
 }

@@ -29,17 +29,18 @@ export const authenticate = async (req, res, next) => {
       id: user.id,
       username: user.username,
       role: user.role,
+      isMasterSuperAdmin: user.isMasterSuperAdmin,
       telefono: user.telefono,
       businessId: user.businessId,
       barberoId: barbero?.id || null,
       businessStatus: user.business.status,
     };
 
-    if (user.business.status === 'SUSPENDED') {
-      return res.status(403).json({ 
-        message: 'Servicio Suspendido', 
+    if (user.role !== 'SUPERADMIN' && user.business.status === 'SUSPENDED') {
+      return res.status(403).json({
+        message: 'Servicio Suspendido',
         code: 'ACCOUNT_SUSPENDED',
-        businessId: user.businessId 
+        businessId: user.businessId
       });
     }
 

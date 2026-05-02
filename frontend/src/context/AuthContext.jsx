@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import api from '../api/client.js';
 
 const AuthContext = createContext({});
-const STORAGE_KEY = 'agenda_octane_token';
+const STORAGE_KEY = 'agenda_shessai_token';
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem(STORAGE_KEY));

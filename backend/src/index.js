@@ -11,6 +11,7 @@ import disponiblesRouter from './routes/disponibles.js';
 import serviciosRouter from './routes/servicios.js';
 import usersRouter from './routes/users.js';
 import publicRouter from './routes/public.js';
+import superadminRouter from './routes/superadmin.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import reminderJob from './jobs/reminderJob.js';
 
@@ -33,6 +34,7 @@ app.use('/citas', citasRouter);
 app.use('/users', usersRouter);
 app.use('/business', businessRouter);
 app.use('/public', publicRouter);
+app.use('/superadmin', superadminRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

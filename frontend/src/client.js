@@ -1,0 +1,29 @@
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000',
+});
+
+console.log('--- [Frontend Debug] API Base URL:', api.defaults.baseURL);
+
+const storedToken = typeof window !== 'undefined' ? localStorage.getItem('agenda_shessai_token') : null;
+
+if (storedToken) {
+  api.defaults.headers.common.Authorization = `Bearer ${storedToken}`;
+}
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('agenda_shessai_token');
+      delete api.defaults.headers.common.Authorization;
+    }
+    if (error.response?.status === 403 && error.response?.data?.code === 'ACCOUNT_SUSPENDED') {
+      window.location.href = '/suspended';
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default api;

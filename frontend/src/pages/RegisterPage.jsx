@@ -73,7 +73,7 @@ const RegisterPage = () => {
       }
 
       const { data } = await api.post('/auth/register-business', payload);
-      localStorage.setItem('agenda_octane_token', data.token);
+      localStorage.setItem('agenda_shessai_token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       
       // Force reload to ensure AuthContext picks up the new token if it doesn't listen to storage events
@@ -170,7 +170,7 @@ const RegisterPage = () => {
               </label>
               <div className="relative mt-1 flex rounded-xl shadow-sm">
                 <span className="inline-flex items-center rounded-l-xl border border-r-0 border-slate-300 bg-slate-100 px-3 text-slate-500 sm:text-sm dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-500">
-                  agenda.com/
+                  agenda.shessai.com/
                 </span>
                 <input
                   id="slug"
