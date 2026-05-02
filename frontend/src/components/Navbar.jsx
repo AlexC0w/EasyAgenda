@@ -10,10 +10,10 @@ const Navbar = ({ businessName, businessGiro, theme, toggleTheme }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isBookingPage = location.pathname !== '/' &&
-                        location.pathname !== '/login' &&
-                        location.pathname !== '/register' &&
-                        !location.pathname.startsWith('/admin') &&
-                        !location.pathname.startsWith('/superadmin');
+    location.pathname !== '/login' &&
+    location.pathname !== '/register' &&
+    !location.pathname.startsWith('/admin') &&
+    !location.pathname.startsWith('/superadmin');
 
   const adminPath = user?.role === 'SUPERADMIN' ? '/superadmin' : '/admin';
 
@@ -31,15 +31,11 @@ const Navbar = ({ businessName, businessGiro, theme, toggleTheme }) => {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         {/* Logo & Title */}
         <div className="flex items-center gap-3">
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-lg md:h-12 md:w-12 md:rounded-2xl"
-            style={{
-              background: 'linear-gradient(135deg, #0399FF 0%, #2AD1C9 100%)',
-              boxShadow: '0 4px 20px rgba(3, 153, 255, 0.3)',
-            }}
-          >
-            <Calendar className="h-6 w-6 md:h-7 md:w-7" />
-          </div>
+          <img
+            src="/logo.png"
+            alt="Logo"
+            className="h-10 w-10 md:h-12 md:w-12 object-contain drop-shadow-lg"
+          />
           <div>
             <h1 className="text-xl font-bold text-slate-900 dark:text-white md:text-2xl">{businessName}</h1>
             <p className="text-[10px] uppercase tracking-[0.2em] md:text-xs md:tracking-[0.3em]" style={{ color: '#2AD1C9' }}>
@@ -54,7 +50,9 @@ const Navbar = ({ businessName, businessGiro, theme, toggleTheme }) => {
           <nav className="hidden md:flex md:items-center md:justify-end md:gap-3 text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
             {!isBookingPage && (
               <NavLink
-                to="/"
+                to={'https://shessai.com'}
+                target="_blank"
+                rel="noopener noreferrer"
                 className={({ isActive }) =>
                   `flex items-center gap-2 rounded-full border border-transparent px-4 py-2 transition ${isActive ? activeClass : inactiveClass}`
                 }
@@ -136,13 +134,14 @@ const Navbar = ({ businessName, businessGiro, theme, toggleTheme }) => {
         <div className="md:hidden border-t border-slate-200 dark:border-[#0399FF]/10 bg-white dark:bg-[#0B0F1A] px-4 py-4 space-y-3 shadow-lg animate-in slide-in-from-top-2">
           {!isBookingPage && (
             <NavLink
-              to="/"
+              to={'https://shessai.com'}
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => setIsMobileMenuOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-2 rounded-lg px-4 py-3 transition ${
-                  isActive
-                    ? 'bg-[#0399FF]/10 text-[#2AD1C9] font-bold'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                `flex items-center gap-2 rounded-lg px-4 py-3 transition ${isActive
+                  ? 'bg-[#0399FF]/10 text-[#2AD1C9] font-bold'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                 }`
               }
               end
@@ -155,10 +154,9 @@ const Navbar = ({ businessName, businessGiro, theme, toggleTheme }) => {
             to={adminPath}
             onClick={() => setIsMobileMenuOpen(false)}
             className={({ isActive }) =>
-              `flex items-center gap-2 rounded-lg px-4 py-3 transition ${
-                isActive
-                  ? 'bg-[#0399FF]/10 text-[#2AD1C9] font-bold'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+              `flex items-center gap-2 rounded-lg px-4 py-3 transition ${isActive
+                ? 'bg-[#0399FF]/10 text-[#2AD1C9] font-bold'
+                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`
             }
           >
@@ -204,10 +202,9 @@ const Navbar = ({ businessName, businessGiro, theme, toggleTheme }) => {
               to="/login"
               onClick={() => setIsMobileMenuOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-2 rounded-lg px-4 py-3 transition ${
-                  isActive
-                    ? 'bg-[#0399FF]/10 text-[#2AD1C9] font-bold'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                `flex items-center gap-2 rounded-lg px-4 py-3 transition ${isActive
+                  ? 'bg-[#0399FF]/10 text-[#2AD1C9] font-bold'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                 }`
               }
             >
