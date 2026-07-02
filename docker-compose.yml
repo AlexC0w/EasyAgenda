@@ -30,6 +30,7 @@ services:
 
   frontend:
     build: ./frontend
+    container_name: frontend
     restart: unless-stopped
     depends_on:
       - backend

@@ -1,0 +1,4 @@
+WHATSAPP_API_URL="https://api.shessai.com/api/messages/send"
+WHATSAPP_API_KEY="Alex"
+FRONTEND_URL="https://agenda.shessai.com"
+WHATSAPP_DEFAULT_COUNTRY_CODE="52"

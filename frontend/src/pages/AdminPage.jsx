@@ -25,6 +25,7 @@ import {
   Save,
   XCircle,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../api/client.js';
 import SelectField from '../components/SelectField.jsx';
 import Alert from '../components/Alert.jsx';
@@ -33,15 +34,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 
 const toDateTime = (fecha, hora) => new Date(`${fecha.split('T')[0]}T${hora}:00`);
 
-const dayOptions = [
-  { value: 'monday', label: 'Lunes' },
-  { value: 'tuesday', label: 'Martes' },
-  { value: 'wednesday', label: 'Miércoles' },
-  { value: 'thursday', label: 'Jueves' },
-  { value: 'friday', label: 'Viernes' },
-  { value: 'saturday', label: 'Sábado' },
-  { value: 'sunday', label: 'Domingo' },
-];
+const DAY_VALUES = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 const createEmptyBarberProfile = () => ({
   nombre: '',
@@ -88,7 +81,9 @@ const defaultBusiness = {
 
 const AdminPage = () => {
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
   const isAdmin = user?.role === 'ADMIN';
+  const dayOptions = DAY_VALUES.map((v) => ({ value: v, label: t(`admin.days.${v}`) }));
 
   const [activeTab, setActiveTab] = useState('agenda');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -766,10 +761,10 @@ const AdminPage = () => {
         {isAdmin && (
           <div className="mt-6 flex flex-wrap gap-3">
             {[
-              { id: 'agenda', label: 'Agenda', icon: <Calendar className="h-4 w-4" /> },
-              { id: 'usuarios', label: 'Usuarios', icon: <Users className="h-4 w-4" /> },
-              { id: 'servicios', label: 'Servicios', icon: <Scissors className="h-4 w-4" /> },
-              { id: 'negocio', label: 'Negocio', icon: <Settings className="h-4 w-4" /> },
+              { id: 'agenda', label: t('admin.tabs.calendar'), icon: <Calendar className="h-4 w-4" /> },
+              { id: 'usuarios', label: t('admin.tabs.team'), icon: <Users className="h-4 w-4" /> },
+              { id: 'servicios', label: t('admin.tabs.services'), icon: <Scissors className="h-4 w-4" /> },
+              { id: 'negocio', label: t('admin.tabs.business'), icon: <Settings className="h-4 w-4" /> },
             ].map((tab) => (
               <button
                 key={tab.id}

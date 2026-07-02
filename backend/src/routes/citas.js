@@ -267,7 +267,7 @@ router.post('/:id/confirm', async (req, res, next) => {
         });
         const settingsMap = settings.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {});
         
-        const fechaFormatted = new Date(cita.fecha).toLocaleDateString('es-MX', { dateStyle: 'long' });
+        const fechaFormatted = new Date(cita.fecha).toLocaleDateString('es-MX', { dateStyle: 'long', timeZone: 'UTC' });
         
         let serviceNames = cita.servicio.nombre;
         if (updated.servicios && updated.servicios.length > 0) {
@@ -323,7 +323,7 @@ router.post('/:id/cancel', async (req, res, next) => {
         });
         const settingsMap = settings.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {});
         
-        const fechaFormatted = new Date(cita.fecha).toLocaleDateString('es-MX', { dateStyle: 'long' });
+        const fechaFormatted = new Date(cita.fecha).toLocaleDateString('es-MX', { dateStyle: 'long', timeZone: 'UTC' });
 
         let serviceNames = cita.servicio.nombre;
         if (updated.servicios && updated.servicios.length > 0) {

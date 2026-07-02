@@ -12,7 +12,9 @@
       "Bash(xargs grep *)",
       "PowerShell(Stop-Process -Force)",
       "Bash(taskkill /F /IM node.exe)",
-      "Bash(tasklist)"
+      "Bash(tasklist)",
+      "Bash(git commit -m ' *)",
+      "Bash(ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@2.24.211.192 \"echo 'conexion ok'\")"
     ]
   }
 }
