@@ -13,7 +13,9 @@ services:
       - mariadb_data:/var/lib/mysql
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     restart: always
     depends_on:
       - db
@@ -24,15 +26,18 @@ services:
       WHATSAPP_API_KEY: ${WHATSAPP_API_KEY:-}
       WHATSAPP_DEFAULT_COUNTRY_CODE: "52"
       FRONTEND_URL: ${FRONTEND_URL:-https://agenda.octane.com.mx}
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET:-supersecret}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-30d}
+    expose:
+      - "4000"
     command: sh -c "npx prisma migrate deploy && node src/index.js"
     volumes:
       - ./backend/prisma:/app/prisma
 
   frontend:
-    build: ./frontend
-    container_name: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
       - backend
