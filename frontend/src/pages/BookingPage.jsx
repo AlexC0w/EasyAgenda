@@ -79,7 +79,7 @@ const StepDot = ({ active, done, label, num }) => (
     }`}>
       {done ? <Check className="h-4 w-4" /> : num}
     </div>
-    <span className={`hidden text-[10px] font-semibold uppercase tracking-widest sm:block ${
+    <span className={`hidden text-xs font-semibold uppercase tracking-wider sm:block ${
       active ? 'text-[#a24bff]' : done ? 'text-[#be83ff]' : 'text-slate-600'
     }`}>{label}</span>
   </div>
@@ -254,17 +254,17 @@ const BookingPage = () => {
   const Sidebar = () => (
     <aside className="hidden lg:flex w-full flex-col gap-6 lg:w-80 lg:min-w-[300px] lg:max-w-[320px]">
       <div className="rounded-2xl border border-[#a24bff]/20 bg-[#0A0518]/80 p-6 backdrop-blur-xl">
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--violet-400)', margin: '0 0 10px' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--violet-400)', margin: '0 0 10px', fontWeight: 600 }}>
           {isES ? 'Agenda tu sesión' : 'Book your session'}
         </p>
-        <p className="text-sm leading-relaxed" style={{ color: 'var(--text-mute)', margin: 0 }}>
+        <p className="text-sm leading-relaxed mt-2" style={{ color: 'var(--text-mute)', margin: 0 }}>
           {t('booking.sidebarDesc')}
         </p>
       </div>
 
       {(selectedServices.length > 0 || selectedBarbero) && (
         <div className="rounded-2xl border border-[#a24bff]/15 bg-[#120a26]/60 p-5 backdrop-blur">
-          <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-[#be83ff]">
+          <p className="mb-4 text-xs font-bold uppercase tracking-wider text-[#be83ff]">
             {t('booking.selectedSession')}
           </p>
           <div className="space-y-3 text-sm">
@@ -285,7 +285,7 @@ const BookingPage = () => {
                   {getInitials(selectedBarbero.nombre)}
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-widest text-slate-500">{t('booking.specialist')}</p>
+                  <p className="text-xs uppercase tracking-wider text-slate-500">{t('booking.specialist')}</p>
                   <p className="font-semibold text-white">{selectedBarbero.nombre}</p>
                 </div>
               </div>
@@ -312,7 +312,7 @@ const BookingPage = () => {
       )}
 
       <div className="rounded-2xl border border-[#a24bff]/15 bg-[#120a26]/60 p-5 backdrop-blur">
-        <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-[#be83ff]">
+        <p className="mb-4 text-xs font-bold uppercase tracking-wider text-[#be83ff]">
           {t('booking.whatToExpect')}
         </p>
         <ul className="space-y-3">
@@ -421,7 +421,7 @@ const BookingPage = () => {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#a24bff]/10">
               <Monitor className="h-4 w-4 text-[#a24bff]" />
             </div>
-            <h3 className="text-base font-bold uppercase tracking-widest text-slate-400">{t('booking.sessionTypes')}</h3>
+            <h3 className="text-lg font-bold text-slate-300">{t('booking.sessionTypes')}</h3>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {servicios.map((s) => {
@@ -449,7 +449,7 @@ const BookingPage = () => {
                     </div>
                     <div>
                       <p className="font-bold text-white">{s.nombre}</p>
-                      <p className={`text-xs ${active ? 'text-[#be83ff]' : 'text-slate-500'}`}>{s.duracion} {t('booking.minutes')}</p>
+                      <p className={`text-sm ${active ? 'text-[#be83ff]' : 'text-slate-500'}`}>{s.duracion} {t('booking.minutes')}</p>
                     </div>
                   </div>
                   {price && (
@@ -467,7 +467,7 @@ const BookingPage = () => {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#be83ff]/10">
               <User className="h-4 w-4 text-[#be83ff]" />
             </div>
-            <h3 className="text-base font-bold uppercase tracking-widest text-slate-400">{t('booking.specialists')}</h3>
+            <h3 className="text-lg font-bold text-slate-300">{t('booking.specialists')}</h3>
           </div>
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
             {barberos.map((b) => {
@@ -494,7 +494,7 @@ const BookingPage = () => {
                     {getInitials(b.nombre)}
                   </div>
                   <p className="font-bold text-white text-sm">{b.nombre}</p>
-                  <p className={`mt-1 text-[11px] leading-tight ${active ? 'text-[#be83ff]' : 'text-slate-500'}`}>
+                  <p className={`mt-1 text-xs leading-tight ${active ? 'text-[#be83ff]' : 'text-slate-500'}`}>
                     {b.dias_laborales.map(d => dayNameToLabel[d] || d.slice(0, 3)).join(' · ')}
                   </p>
                 </button>
@@ -509,7 +509,7 @@ const BookingPage = () => {
             <button
               type="button"
               onClick={() => setView('calendar')}
-              className="group flex items-center gap-3 rounded-2xl px-8 py-4 text-sm font-bold uppercase tracking-widest text-white transition-all hover:gap-4"
+              className="group flex items-center gap-3 rounded-2xl px-8 py-4 text-base font-bold text-white transition-all hover:gap-4"
               style={{ background: 'linear-gradient(135deg, #7724C4 0%, #a24bff 100%)', boxShadow: '0 8px 30px rgba(162,75,255,0.3)' }}
             >
               {t('booking.continueToCalendar')}
@@ -565,7 +565,7 @@ const BookingPage = () => {
               </button>
               <div className="text-center">
                 <p className="text-base font-bold capitalize text-white">{monthLabel}</p>
-                <p className="text-[10px] uppercase tracking-[0.3em] text-[#be83ff]/70">{t('booking.availability')}</p>
+                <p className="text-xs uppercase tracking-wider text-[#be83ff]/70">{t('booking.availability')}</p>
               </div>
               <button
                 type="button"
@@ -618,8 +618,8 @@ const BookingPage = () => {
                 <Clock className="h-4 w-4 text-[#a24bff]" />
                 <p className="font-bold text-white">{t('booking.availableSlots')}</p>
               </div>
-              <p className="mb-1 text-xs uppercase tracking-widest text-slate-500">{selectedBarbero?.nombre}</p>
-              <p className="mb-4 text-xs text-slate-600">{selectedServices.map(s => s.nombre).join(' + ')}</p>
+              <p className="mb-1 text-sm font-semibold text-slate-300">{selectedBarbero?.nombre}</p>
+              <p className="mb-4 text-sm text-slate-500">{selectedServices.map(s => s.nombre).join(' + ')}</p>
 
               {loadingSlots && (
                 <div className="flex items-center justify-center py-8">
@@ -653,7 +653,7 @@ const BookingPage = () => {
               <button
                 type="button"
                 onClick={() => setView('form')}
-                className="hidden lg:flex group w-full items-center justify-center gap-3 rounded-2xl py-4 text-sm font-bold uppercase tracking-widest text-white transition-all hover:gap-4"
+                className="hidden lg:flex group w-full items-center justify-center gap-3 rounded-2xl py-4 text-base font-bold text-white transition-all hover:gap-4"
                 style={{ background: 'linear-gradient(135deg, #7724C4 0%, #a24bff 100%)', boxShadow: '0 8px 30px rgba(162,75,255,0.3)' }}
               >
                 {t('booking.continueToCalendar')}
@@ -718,7 +718,7 @@ const BookingPage = () => {
 
           {/* Name */}
           <label className="flex flex-col gap-1.5 text-sm">
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">{t('booking.fullName')}</span>
+            <span className="text-sm font-semibold text-slate-400">{t('booking.fullName')}</span>
             <div className="relative">
               <User className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-600" />
               <input
@@ -734,7 +734,7 @@ const BookingPage = () => {
 
           {/* Phone */}
           <label className="flex flex-col gap-1.5 text-sm">
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">{t('booking.phone')}</span>
+            <span className="text-sm font-semibold text-slate-400">{t('booking.phone')}</span>
             <div className="flex gap-2">
               <select
                 value={formData.countryCode}
@@ -765,9 +765,9 @@ const BookingPage = () => {
 
           {/* Email */}
           <label className="flex flex-col gap-1.5 text-sm">
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
+            <span className="text-sm font-semibold text-slate-400">
               {t('booking.email')}
-              <span className="ml-2 text-[10px] normal-case tracking-normal text-slate-600">(opcional)</span>
+              <span className="ml-2 text-xs font-normal text-slate-600">(opcional)</span>
             </span>
             <div className="relative">
               <Mail className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-600" />
@@ -783,9 +783,9 @@ const BookingPage = () => {
 
           {/* Empresa — hidden on mobile, visible on desktop */}
           <label className="hidden lg:flex flex-col gap-1.5 text-sm">
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
+            <span className="text-sm font-semibold text-slate-400">
               {t('booking.company')}
-              <span className="ml-2 text-[10px] normal-case tracking-normal text-slate-600">(opcional)</span>
+              <span className="ml-2 text-xs font-normal text-slate-600">(opcional)</span>
             </span>
             <div className="relative">
               <Building2 className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-600" />
@@ -803,7 +803,7 @@ const BookingPage = () => {
           <button
             type="submit"
             disabled={bookingLoading}
-            className="hidden lg:flex mt-2 w-full items-center justify-center gap-3 rounded-2xl py-4 text-sm font-bold uppercase tracking-widest text-white transition-all disabled:opacity-60"
+            className="hidden lg:flex mt-2 w-full items-center justify-center gap-3 rounded-2xl py-4 text-base font-bold text-white transition-all disabled:opacity-60"
             style={{ background: 'linear-gradient(135deg, #7724C4 0%, #a24bff 100%)', boxShadow: '0 8px 30px rgba(162,75,255,0.3)' }}
           >
             {bookingLoading ? (
