@@ -440,7 +440,7 @@ const BookingPage = () => {
         {/* Vently co-branding banner */}
         {isVently && (
           <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur">
-            <img src="/vently-logo.png" alt="Vently" className="h-8 object-contain" />
+            <img src="/vently.png" alt="Vently" className="h-8 object-contain" />
             <div className="h-8 w-px bg-white/15" />
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -490,7 +490,7 @@ const BookingPage = () => {
                   <div className="mb-3 flex items-center gap-3">
                     {isVentlyService ? (
                       <div className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl ${active ? 'bg-white/10' : 'bg-[#19102f]'}`}>
-                        <img src="/vently-logo.png" alt="Vently" className="h-7 w-7 object-contain" />
+                        <img src="/vently.png" alt="Vently" className="h-7 w-7 object-contain" />
                       </div>
                     ) : (
                       <div className={`flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${active ? 'bg-[#a24bff]/20' : 'bg-[#19102f]'}`}>
