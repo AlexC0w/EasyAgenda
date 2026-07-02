@@ -1,12 +1,10 @@
-import { NavLink, Route, Routes, useNavigate, useLocation, useParams } from 'react-router-dom';
-import { Calendar } from 'lucide-react';
+import { Navigate, Route, Routes, useNavigate, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import BookingPage from './pages/BookingPage.jsx';
 import SuspendedPage from './pages/SuspendedPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
-import LandingPage from './pages/LandingPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import ConfirmationPage from './pages/ConfirmationPage.jsx';
 import SuperAdminPage from './pages/SuperAdminPage.jsx';
@@ -15,36 +13,21 @@ import { useAuth } from './context/AuthContext.jsx';
 
 import Navbar from './components/Navbar.jsx';
 import { useEffect, useState } from 'react';
+// App.jsx — Octane EasyAgenda shell
 import api from './api/client.js';
 
 const AppShell = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [businessName, setBusinessName] = useState('Agenda Shessai');
-  const [businessGiro, setBusinessGiro] = useState('Plataforma de Reservas');
+  const [businessName, setBusinessName] = useState('Octane');
+  const [businessGiro, setBusinessGiro] = useState('Technology Solutions');
   
-  const [theme, setTheme] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('theme') || 'dark';
-    }
-    return 'dark';
-  });
-
+  // Octane DS is always dark — force dark class once
   useEffect(() => {
-    const root = window.document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+    window.document.documentElement.classList.add('dark');
+  }, []);
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
-  
   // Check if we are in a booking flow (dynamic slug) or admin/auth flow
   const isBookingPage = location.pathname !== '/' &&
                         location.pathname !== '/login' &&
@@ -61,7 +44,7 @@ const AppShell = () => {
         try {
           const { data } = await api.get(`/public/business/${slug}`);
           setBusinessName(data.name);
-          setBusinessGiro(data.giro || 'Barber Studio');
+          setBusinessGiro(data.giro || 'Technology Solutions');
         } catch (e) {
           console.error('Error fetching business info', e);
         }
@@ -71,13 +54,13 @@ const AppShell = () => {
           const { data } = await api.get('/business');
           const nameSetting = data.find(s => s.key === 'businessName');
           if (nameSetting) setBusinessName(nameSetting.value);
-          setBusinessGiro(user.businessGiro || 'Barber Studio');
+          setBusinessGiro(user.businessGiro || 'Technology Solutions');
         } catch (e) {
           console.error('Error fetching business name', e);
         }
       } else {
-        setBusinessName('Agenda Shessai');
-        setBusinessGiro('Plataforma de Reservas');
+        setBusinessName('Octane');
+        setBusinessGiro('Technology Solutions');
       }
     };
     fetchBusinessName();
@@ -91,24 +74,15 @@ const AppShell = () => {
   const isSuperAdminRoute = location.pathname.startsWith('/superadmin');
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F1A] text-slate-900 dark:text-slate-100 transition-colors duration-300">
-      {!isSuperAdminRoute && (
-        <Navbar
-          businessName={businessName}
-          businessGiro={businessGiro}
-          theme={theme}
-          toggleTheme={toggleTheme}
-        />
-      )}
-      {/* Dark mode glow overlay */}
-      <div className="pointer-events-none fixed inset-0 -z-10 hidden dark:block"
-        style={{
-          background: 'radial-gradient(ellipse 80rem 50rem at top, rgba(3,153,255,0.07), transparent 60%), radial-gradient(ellipse 60rem 40rem at 80% 90%, rgba(42,209,201,0.05), transparent 55%)'
-        }}
+    <div style={{ minHeight: '100vh', background: 'var(--void)', color: 'var(--text)', fontFamily: 'var(--font-body)' }}>
+      {!isSuperAdminRoute && <Navbar />}
+      {/* Ambient violet glow */}
+      <div className="pointer-events-none fixed inset-0 -z-10"
+        style={{ background: 'radial-gradient(60% 40% at 50% 0%, rgba(162,75,255,0.1), transparent 65%)' }}
       />
       <main className={isSuperAdminRoute ? '' : 'mx-auto w-full max-w-7xl px-4 py-8'}>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<Navigate to="/octane" replace />} />
           <Route path="/suspended" element={<SuspendedPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />

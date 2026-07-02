@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Lock, LogIn, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const [form, setForm] = useState({ username: '', password: '' });
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -20,7 +22,7 @@ const LoginPage = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!form.username || !form.password) {
-      toast.error('Completa usuario y contraseña');
+      toast.error(t('login.errorFields'));
       return;
     }
     setSubmitting(true);
@@ -32,10 +34,10 @@ const LoginPage = () => {
         const from = location.state?.from?.pathname || '/admin';
         navigate(from, { replace: true });
       }
-      toast.success('Bienvenido de nuevo');
+      toast.success(t('login.successLogin'));
     } catch (error) {
       console.error(error);
-      const message = error.response?.data?.message || 'Credenciales inválidas';
+      const message = error.response?.data?.message || t('login.errorInvalid');
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -43,97 +45,63 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-80px)] items-center justify-center px-4">
-      <div
-        className="w-full max-w-md rounded-3xl border p-8 shadow-2xl backdrop-blur transition-colors duration-300
-          bg-white border-slate-200 shadow-slate-200/50
-          dark:bg-slate-900/80 dark:border-slate-800/80 dark:shadow-[#0399FF]/5"
-      >
+    <div style={{ display: 'flex', minHeight: 'calc(100vh - 74px)', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', background: 'var(--void)', position: 'relative', overflow: 'hidden' }}>
+      <div className="oct-orb" style={{ width: 400, height: 400, background: '#7724c4', top: -100, left: -100, opacity: 0.3 }} />
+      <div className="oct-orb" style={{ width: 300, height: 300, background: '#a24bff', bottom: -80, right: -80, opacity: 0.2 }} />
+      <div className="oct-hexgrid" style={{ opacity: 0.35 }} />
+
+      <div className="oct-card oct-card--glass" style={{ width: '100%', maxWidth: 440, position: 'relative', zIndex: 1, padding: 40 }}>
         {/* Header */}
-        <div className="mb-8 flex flex-col items-center gap-3 text-center">
-          <div
-            className="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl shadow-lg"
-            style={{
-              background: 'linear-gradient(135deg, #0399FF 0%, #2AD1C9 100%)',
-              boxShadow: '0 8px 24px rgba(3, 153, 255, 0.3)',
-            }}
-          >
-            <Lock className="h-8 w-8 text-white" />
-          </div>
+        <div style={{ marginBottom: 36, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, textAlign: 'center' }}>
+          <span className="oct-hexicon oct-hexicon--neon" style={{ width: 64, height: 70 }}>
+            <span className="oct-hexicon__inner" style={{ width: 64, height: 64 }}>
+              <Lock strokeWidth={1.8} />
+            </span>
+          </span>
           <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Acceso administrativo</h2>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Ingresa con tu cuenta de administrador o colaborador.
-            </p>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.5rem', color: 'var(--text)', margin: '0 0 6px' }}>{t('login.title')}</h2>
+            <p style={{ color: 'var(--text-mute)', fontSize: '0.875rem', margin: 0 }}>{t('login.subtitle')}</p>
           </div>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Usuario */}
-          <div>
-            <label htmlFor="username" className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
-              Usuario
-            </label>
-            <input
-              id="username"
-              name="username"
-              value={form.username}
-              onChange={handleChange}
-              className="w-full rounded-xl border px-4 py-3 text-sm transition
-                bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400
-                focus:border-[#0399FF] focus:outline-none focus:ring-2 focus:ring-[#0399FF]/20
-                dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-500
-                dark:focus:border-[#0399FF] dark:focus:ring-[#0399FF]/20"
-              placeholder="admin"
-              autoComplete="username"
-            />
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div className="oct-field">
+            <label className="oct-field__label" htmlFor="username">{t('login.username')}</label>
+            <div className="oct-inputwrap">
+              <input
+                id="username" name="username" value={form.username} onChange={handleChange}
+                className="oct-input" placeholder="admin" autoComplete="username"
+              />
+            </div>
           </div>
 
-          {/* Contraseña */}
-          <div>
-            <label htmlFor="password" className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
-              Contraseña
-            </label>
-            <div className="relative">
+          <div className="oct-field">
+            <label className="oct-field__label" htmlFor="password">{t('login.password')}</label>
+            <div className="oct-inputwrap" style={{ position: 'relative' }}>
               <input
-                id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                value={form.password}
-                onChange={handleChange}
-                className="w-full rounded-xl border px-4 py-3 pr-12 text-sm transition
-                  bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400
-                  focus:border-[#0399FF] focus:outline-none focus:ring-2 focus:ring-[#0399FF]/20
-                  dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-500
-                  dark:focus:border-[#0399FF] dark:focus:ring-[#0399FF]/20"
-                placeholder="••••••••"
-                autoComplete="current-password"
+                id="password" name="password" type={showPassword ? 'text' : 'password'}
+                value={form.password} onChange={handleChange}
+                className="oct-input" placeholder="••••••••" autoComplete="current-password"
+                style={{ paddingRight: 44 }}
               />
               <button
-                type="button"
-                onClick={() => setShowPassword((p) => !p)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#0399FF] transition"
-                tabIndex={-1}
-                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                type="button" onClick={() => setShowPassword((p) => !p)} tabIndex={-1}
+                aria-label={showPassword ? t('login.hidePassword') : t('login.showPassword')}
+                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-mute)', display: 'flex', padding: 4 }}
               >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
-          {/* Submit */}
           <button
-            type="submit"
-            disabled={submitting}
-            className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold uppercase tracking-widest text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 shadow-lg mt-2"
-            style={{
-              background: 'linear-gradient(135deg, #0399FF 0%, #2AD1C9 100%)',
-              boxShadow: '0 8px 24px rgba(3, 153, 255, 0.25)',
-            }}
+            type="submit" disabled={submitting}
+            className="oct-btn oct-btn--primary oct-btn--lg oct-btn--block"
+            style={{ marginTop: 4 }}
           >
-            <LogIn className="h-4 w-4" />
-            {submitting ? 'Ingresando...' : 'Entrar'}
+            <LogIn size={18} />
+            {submitting ? t('login.submitting') : t('login.submit')}
           </button>
         </form>
       </div>

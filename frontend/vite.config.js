@@ -7,13 +7,13 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.png', 'apple-touch-icon.png'],
+      includeAssets: ['octane-mark-color.png'],
       manifest: {
-        name: 'Agenda Shessai',
-        short_name: 'Shessai',
-        description: 'Gestión profesional de agenda para barberías',
-        theme_color: '#0f172a',
-        background_color: '#0f172a',
+        name: 'Octane — Agenda tu sesión',
+        short_name: 'Octane',
+        description: 'Agenda una sesión con un especialista de Octane Informatic Solutions',
+        theme_color: '#060312',
+        background_color: '#060312',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
