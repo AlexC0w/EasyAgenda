@@ -32,9 +32,8 @@ services:
     expose:
       - "4000"
     networks:
-      default:
-        aliases:
-          - backend
+      - default
+      - dokploy-network
     command: sh -c "npx prisma migrate deploy && node src/index.js"
     volumes:
       - ./backend/prisma:/app/prisma
@@ -56,6 +55,8 @@ networks:
     driver: bridge
     driver_opts:
       com.docker.network.driver.mtu: 1280
+  dokploy-network:
+    external: true
 
 volumes:
   mariadb_data:
