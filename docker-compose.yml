@@ -30,6 +30,10 @@ services:
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-30d}
     expose:
       - "4000"
+    networks:
+      default:
+        aliases:
+          - backend
     command: sh -c "npx prisma migrate deploy && node src/index.js"
     volumes:
       - ./backend/prisma:/app/prisma
