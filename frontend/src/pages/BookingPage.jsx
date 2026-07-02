@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import {
   Calendar,
   Check,
@@ -89,11 +89,22 @@ const StepConnector = ({ done }) => (
   <div className={`h-px w-8 flex-1 transition-all duration-500 sm:w-12 ${done ? 'bg-[#a24bff]/60' : 'bg-[#19102f]'}`} />
 );
 
+// Detect if the visitor comes from Vently (URL param OR referrer)
+const detectVently = (searchParams) => {
+  if (searchParams.get('ref') === 'vently') return true;
+  try {
+    return document.referrer.toLowerCase().includes('vently');
+  } catch { return false; }
+};
+
 const BookingPage = () => {
   const { slug } = useParams();
+  const [searchParams] = useSearchParams();
   const { t, i18n } = useTranslation();
   const isES = i18n.language.startsWith('es');
   const formRef = useRef(null);
+
+  const isVently = useMemo(() => detectVently(searchParams), [searchParams]);
 
   const [view, setView] = useState('selection'); // selection | calendar | form | done
   const [barberos, setBarberos] = useState([]);
@@ -138,7 +149,15 @@ const BookingPage = () => {
             setMonthCursor(new Date(d.getFullYear(), d.getMonth(), 1));
           }
         }
-        if (sRes.data.length) setSelectedServiceIds([String(sRes.data[0].id)]);
+        if (sRes.data.length) {
+          // When coming from Vently, auto-select the Vently service
+          if (isVently) {
+            const ventlyService = sRes.data.find(s => s.nombre.toLowerCase().includes('vently'));
+            setSelectedServiceIds([String(ventlyService ? ventlyService.id : sRes.data[0].id)]);
+          } else {
+            setSelectedServiceIds([String(sRes.data[0].id)]);
+          }
+        }
       } catch {
         setError(t('booking.errorLoadData'));
       }
@@ -158,6 +177,13 @@ const BookingPage = () => {
 
   const totalDuration = useMemo(() => selectedServices.reduce((s, x) => s + x.duracion, 0), [selectedServices]);
   const totalPrice = useMemo(() => selectedServices.reduce((s, x) => s + Number(x.precio), 0), [selectedServices]);
+
+  // When from Vently, only show Vently-tagged services
+  const serviciosVisibles = useMemo(() => {
+    if (!isVently) return servicios;
+    const vently = servicios.filter(s => s.nombre.toLowerCase().includes('vently'));
+    return vently.length ? vently : servicios;
+  }, [servicios, isVently]);
 
   useEffect(() => {
     if (!selectedBarbero) return;
@@ -410,6 +436,21 @@ const BookingPage = () => {
       <Sidebar />
       <div className="flex-1 space-y-6 pb-28 lg:pb-0">
         <MobileSummary />
+
+        {/* Vently co-branding banner */}
+        {isVently && (
+          <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur">
+            <img src="/vently-logo.png" alt="Vently" className="h-8 object-contain" />
+            <div className="h-8 w-px bg-white/15" />
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                {isES ? 'Agenda tu sesión desde' : 'Book your session via'}
+              </p>
+              <p className="text-sm font-bold text-white">Vently</p>
+            </div>
+          </div>
+        )}
+
         <Steps />
         {error && (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>
@@ -417,26 +458,29 @@ const BookingPage = () => {
 
         {/* Service types */}
         <section className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#a24bff]/10">
-              <Monitor className="h-4 w-4 text-[#a24bff]" />
+          {!isVently && (
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#a24bff]/10">
+                <Monitor className="h-4 w-4 text-[#a24bff]" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-300">{t('booking.sessionTypes')}</h3>
             </div>
-            <h3 className="text-lg font-bold text-slate-300">{t('booking.sessionTypes')}</h3>
-          </div>
+          )}
           <div className="grid gap-3 sm:grid-cols-2">
-            {servicios.map((s) => {
+            {serviciosVisibles.map((s) => {
               const active = selectedServiceIds.includes(String(s.id));
               const price = formatPrice(s.precio);
+              const isVentlyService = s.nombre.toLowerCase().includes('vently');
               return (
                 <button
                   key={s.id}
                   type="button"
-                  onClick={() => setSelectedServiceIds([String(s.id)])}
+                  onClick={() => !isVently && setSelectedServiceIds([String(s.id)])}
                   className={`group relative overflow-hidden rounded-2xl border p-5 text-left transition-all duration-200 active:scale-[0.98] ${
                     active
                       ? 'border-[#a24bff]/60 bg-[#a24bff]/10 shadow-lg shadow-[#a24bff]/10'
                       : 'border-[#a24bff]/15 bg-[#120a26]/70 hover:border-[#a24bff]/30 hover:bg-[#120a26]/80'
-                  }`}
+                  } ${isVently ? 'cursor-default' : ''}`}
                 >
                   {active && (
                     <div className="absolute right-4 top-4 flex h-5 w-5 items-center justify-center rounded-full bg-[#a24bff]">
@@ -444,9 +488,15 @@ const BookingPage = () => {
                     </div>
                   )}
                   <div className="mb-3 flex items-center gap-3">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${active ? 'bg-[#a24bff]/20' : 'bg-[#19102f]'}`}>
-                      <Clock className={`h-5 w-5 ${active ? 'text-[#a24bff]' : 'text-slate-400'}`} />
-                    </div>
+                    {isVentlyService ? (
+                      <div className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl ${active ? 'bg-white/10' : 'bg-[#19102f]'}`}>
+                        <img src="/vently-logo.png" alt="Vently" className="h-7 w-7 object-contain" />
+                      </div>
+                    ) : (
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${active ? 'bg-[#a24bff]/20' : 'bg-[#19102f]'}`}>
+                        <Clock className={`h-5 w-5 ${active ? 'text-[#a24bff]' : 'text-slate-400'}`} />
+                      </div>
+                    )}
                     <div>
                       <p className="font-bold text-white">{s.nombre}</p>
                       <p className={`text-sm ${active ? 'text-[#be83ff]' : 'text-slate-500'}`}>{s.duracion} {t('booking.minutes')}</p>
