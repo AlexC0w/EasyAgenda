@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Calendar,
@@ -68,7 +68,6 @@ const formatPrice = (value) => {
   return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n);
 };
 
-// Step indicator component
 const StepDot = ({ active, done, label, num }) => (
   <div className="flex flex-col items-center gap-1">
     <div className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-bold transition-all duration-300 ${
@@ -94,6 +93,7 @@ const BookingPage = () => {
   const { slug } = useParams();
   const { t, i18n } = useTranslation();
   const isES = i18n.language.startsWith('es');
+  const formRef = useRef(null);
 
   const [view, setView] = useState('selection'); // selection | calendar | form | done
   const [barberos, setBarberos] = useState([]);
@@ -112,6 +112,11 @@ const BookingPage = () => {
 
   const dayNameToLabel = isES ? DAY_LABELS_ES : DAY_LABELS_EN;
   const daysOfWeek = isES ? DAYS_OF_WEEK_ES : DAYS_OF_WEEK_EN;
+
+  // Scroll to top on every step transition
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [view]);
 
   useEffect(() => {
     const load = async () => {
@@ -245,10 +250,9 @@ const BookingPage = () => {
   const monthLabel = monthCursor.toLocaleDateString(isES ? 'es-MX' : 'en-US', { month: 'long', year: 'numeric' });
   const step = view === 'selection' ? 1 : view === 'calendar' ? 2 : view === 'form' ? 3 : 3;
 
-  // ─── SIDEBAR ─────────────────────────────────────────────────────────────
+  // ─── SIDEBAR (desktop only) ───────────────────────────────────────────────
   const Sidebar = () => (
-    <aside className="flex w-full flex-col gap-6 lg:w-80 lg:min-w-[300px] lg:max-w-[320px]">
-      {/* Intro card */}
+    <aside className="hidden lg:flex w-full flex-col gap-6 lg:w-80 lg:min-w-[300px] lg:max-w-[320px]">
       <div className="rounded-2xl border border-[#a24bff]/20 bg-[#0A0518]/80 p-6 backdrop-blur-xl">
         <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--violet-400)', margin: '0 0 10px' }}>
           {isES ? 'Agenda tu sesión' : 'Book your session'}
@@ -258,7 +262,6 @@ const BookingPage = () => {
         </p>
       </div>
 
-      {/* Selected session summary */}
       {(selectedServices.length > 0 || selectedBarbero) && (
         <div className="rounded-2xl border border-[#a24bff]/15 bg-[#120a26]/60 p-5 backdrop-blur">
           <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-[#be83ff]">
@@ -308,7 +311,6 @@ const BookingPage = () => {
         </div>
       )}
 
-      {/* What to expect */}
       <div className="rounded-2xl border border-[#a24bff]/15 bg-[#120a26]/60 p-5 backdrop-blur">
         <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-[#be83ff]">
           {t('booking.whatToExpect')}
@@ -327,7 +329,6 @@ const BookingPage = () => {
         </ul>
       </div>
 
-      {/* WhatsApp badge */}
       <div className="flex items-center gap-3 rounded-2xl border border-green-500/20 bg-green-500/5 px-4 py-3">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-500/10">
           <MessageCircle className="h-4 w-4 text-green-400" />
@@ -340,9 +341,61 @@ const BookingPage = () => {
     </aside>
   );
 
+  // ─── MOBILE SUMMARY STRIP ────────────────────────────────────────────────
+  const MobileSummary = () => {
+    if (!selectedBarbero && selectedServices.length === 0) return null;
+    return (
+      <div className="lg:hidden rounded-2xl border border-[#a24bff]/20 bg-[#120a26]/80 px-4 py-3 backdrop-blur">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+          {selectedServices.length > 0 && (
+            <span className="font-semibold text-white">{selectedServices.map(s => s.nombre).join(' + ')}</span>
+          )}
+          {selectedBarbero && (
+            <span className="text-[#be83ff]">· {selectedBarbero.nombre}</span>
+          )}
+          {selectedDate && (
+            <span className="text-slate-400">
+              · {new Date(`${selectedDate}T12:00:00`).toLocaleDateString(isES ? 'es-MX' : 'en-US', { month: 'short', day: 'numeric' })}
+            </span>
+          )}
+          {selectedTime && (
+            <span className="font-bold text-[#a24bff]">· {selectedTime}</span>
+          )}
+          {totalDuration > 0 && (
+            <span className="text-slate-500 text-xs">· {totalDuration} min</span>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // ─── STICKY BOTTOM CTA (mobile only) ─────────────────────────────────────
+  const StickyMobileCTA = ({ label, onClick, disabled, type = 'button', form }) => (
+    <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pt-4 lg:hidden"
+      style={{ background: 'linear-gradient(to top, rgba(6,3,18,1) 55%, rgba(6,3,18,0) 100%)' }}>
+      <button
+        type={type}
+        form={form}
+        disabled={disabled}
+        onClick={onClick}
+        className="flex w-full items-center justify-center gap-3 rounded-2xl py-4 text-base font-bold text-white transition-all active:scale-[0.97] disabled:opacity-40"
+        style={{ background: 'linear-gradient(135deg, #7724C4 0%, #a24bff 100%)', boxShadow: '0 8px 30px rgba(162,75,255,0.45)' }}
+      >
+        {disabled && type !== 'submit' ? (
+          <span className="text-white/60">{label}</span>
+        ) : (
+          <>
+            {label}
+            <ArrowRight className="h-5 w-5" />
+          </>
+        )}
+      </button>
+    </div>
+  );
+
   // ─── STEP INDICATOR ───────────────────────────────────────────────────────
   const Steps = () => (
-    <div className="mb-8 flex items-center justify-center gap-2">
+    <div className="mb-6 flex items-center justify-center gap-2">
       <StepDot num={1} active={step === 1} done={step > 1} label={t('booking.step1')} />
       <StepConnector done={step > 1} />
       <StepDot num={2} active={step === 2} done={step > 2} label={t('booking.step2')} />
@@ -355,13 +408,14 @@ const BookingPage = () => {
   if (view === 'selection') return (
     <div className="flex min-h-[calc(100vh-80px)] flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
       <Sidebar />
-      <div className="flex-1 space-y-8">
+      <div className="flex-1 space-y-6 pb-28 lg:pb-0">
+        <MobileSummary />
         <Steps />
         {error && (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>
         )}
 
-        {/* Session types */}
+        {/* Service types */}
         <section className="space-y-4">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#a24bff]/10">
@@ -378,7 +432,7 @@ const BookingPage = () => {
                   key={s.id}
                   type="button"
                   onClick={() => setSelectedServiceIds([String(s.id)])}
-                  className={`group relative overflow-hidden rounded-2xl border p-5 text-left transition-all duration-200 ${
+                  className={`group relative overflow-hidden rounded-2xl border p-5 text-left transition-all duration-200 active:scale-[0.98] ${
                     active
                       ? 'border-[#a24bff]/60 bg-[#a24bff]/10 shadow-lg shadow-[#a24bff]/10'
                       : 'border-[#a24bff]/15 bg-[#120a26]/70 hover:border-[#a24bff]/30 hover:bg-[#120a26]/80'
@@ -415,7 +469,7 @@ const BookingPage = () => {
             </div>
             <h3 className="text-base font-bold uppercase tracking-widest text-slate-400">{t('booking.specialists')}</h3>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
             {barberos.map((b) => {
               const active = String(b.id) === selectedBarberoId;
               return (
@@ -423,24 +477,24 @@ const BookingPage = () => {
                   key={b.id}
                   type="button"
                   onClick={() => setSelectedBarberoId(String(b.id))}
-                  className={`group relative rounded-2xl border p-5 text-left transition-all duration-200 ${
+                  className={`group relative rounded-2xl border p-4 text-left transition-all duration-200 active:scale-[0.98] ${
                     active
-                      ? 'border-[#be83ff]/50 bg-[#be83ff]/8 shadow-lg shadow-[#be83ff]/10'
+                      ? 'border-[#be83ff]/50 shadow-lg shadow-[#be83ff]/10'
                       : 'border-[#a24bff]/15 bg-[#120a26]/70 hover:border-[#be83ff]/25 hover:bg-[#120a26]/80'
                   }`}
                   style={active ? { background: 'rgba(162,75,255,0.07)' } : {}}
                 >
                   {active && (
-                    <div className="absolute right-4 top-4 flex h-5 w-5 items-center justify-center rounded-full bg-[#be83ff]">
+                    <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#be83ff]">
                       <Check className="h-3 w-3 text-[#0A0518]" />
                     </div>
                   )}
-                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl text-lg font-bold"
+                  <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-xl text-base font-bold"
                     style={{ background: active ? 'rgba(162,75,255,0.2)' : 'rgba(30,40,60,1)', color: active ? '#be83ff' : '#94a3b8' }}>
                     {getInitials(b.nombre)}
                   </div>
-                  <p className="font-bold text-white">{b.nombre}</p>
-                  <p className={`mt-1 text-xs ${active ? 'text-[#be83ff]' : 'text-slate-500'}`}>
+                  <p className="font-bold text-white text-sm">{b.nombre}</p>
+                  <p className={`mt-1 text-[11px] leading-tight ${active ? 'text-[#be83ff]' : 'text-slate-500'}`}>
                     {b.dias_laborales.map(d => dayNameToLabel[d] || d.slice(0, 3)).join(' · ')}
                   </p>
                 </button>
@@ -449,8 +503,9 @@ const BookingPage = () => {
           </div>
         </section>
 
+        {/* Desktop CTA */}
         {selectedServices.length > 0 && selectedBarbero && (
-          <div className="flex justify-end">
+          <div className="hidden lg:flex justify-end">
             <button
               type="button"
               onClick={() => setView('calendar')}
@@ -463,6 +518,13 @@ const BookingPage = () => {
           </div>
         )}
       </div>
+
+      {/* Mobile sticky CTA */}
+      <StickyMobileCTA
+        label={selectedServices.length > 0 && selectedBarbero ? t('booking.continueToCalendar') : isES ? 'Selecciona servicio y barbero' : 'Select service & specialist'}
+        onClick={() => setView('calendar')}
+        disabled={!(selectedServices.length > 0 && selectedBarbero)}
+      />
     </div>
   );
 
@@ -470,41 +532,45 @@ const BookingPage = () => {
   if (view === 'calendar') return (
     <div className="flex min-h-[calc(100vh-80px)] flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
       <Sidebar />
-      <div className="flex-1 space-y-6">
+      <div className="flex-1 space-y-5 pb-28 lg:pb-0">
         <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={() => setView('selection')}
-            className="text-sm font-medium text-slate-500 transition hover:text-white"
+            className="flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-white"
           >
+            <ChevronLeft className="h-4 w-4" />
             {t('booking.backToSelection')}
           </button>
           <div className="h-px flex-1 bg-[#19102f]" />
         </div>
+
+        <MobileSummary />
         <Steps />
+
         {error && (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>
         )}
 
-        <div className="grid gap-6 xl:grid-cols-[1fr,320px]">
+        <div className="grid gap-5 xl:grid-cols-[1fr,320px]">
           {/* Calendar */}
-          <div className="rounded-2xl border border-[#a24bff]/15 bg-[#120a26]/60 p-6 backdrop-blur">
-            <header className="mb-6 flex items-center justify-between">
+          <div className="rounded-2xl border border-[#a24bff]/15 bg-[#120a26]/60 p-5 backdrop-blur">
+            <header className="mb-5 flex items-center justify-between">
               <button
                 type="button"
                 onClick={() => handleMonthShift(-1)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#a24bff]/15 text-slate-400 transition hover:border-[#a24bff]/40 hover:text-[#a24bff]"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#a24bff]/15 text-slate-400 transition active:scale-95 hover:border-[#a24bff]/40 hover:text-[#a24bff]"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <div className="text-center">
-                <p className="text-lg font-bold capitalize text-white">{monthLabel}</p>
+                <p className="text-base font-bold capitalize text-white">{monthLabel}</p>
                 <p className="text-[10px] uppercase tracking-[0.3em] text-[#be83ff]/70">{t('booking.availability')}</p>
               </div>
               <button
                 type="button"
                 onClick={() => handleMonthShift(1)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#a24bff]/15 text-slate-400 transition hover:border-[#a24bff]/40 hover:text-[#a24bff]"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#a24bff]/15 text-slate-400 transition active:scale-95 hover:border-[#a24bff]/40 hover:text-[#a24bff]"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
@@ -527,7 +593,7 @@ const BookingPage = () => {
                     type="button"
                     disabled={!sel}
                     onClick={() => sel && setSelectedDate(iso)}
-                    className={`aspect-square rounded-xl text-sm font-semibold transition-all duration-200 ${
+                    className={`flex aspect-square min-h-[40px] items-center justify-center rounded-xl text-sm font-semibold transition-all duration-200 active:scale-95 ${
                       !sel
                         ? 'cursor-not-allowed text-[#5c4e7a]'
                         : chosen
@@ -563,13 +629,13 @@ const BookingPage = () => {
               {!loadingSlots && visibleSlots.length === 0 && (
                 <p className="py-6 text-center text-sm text-slate-600">{t('booking.noSlots')}</p>
               )}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {!loadingSlots && visibleSlots.map((slot) => (
                   <button
                     key={slot}
                     type="button"
                     onClick={() => setSelectedTime(slot)}
-                    className={`rounded-xl border py-2.5 text-sm font-semibold transition-all duration-200 ${
+                    className={`rounded-xl border py-3.5 text-sm font-semibold transition-all duration-200 active:scale-[0.97] ${
                       selectedTime === slot
                         ? 'border-[#a24bff]/60 text-white shadow-lg shadow-[#a24bff]/20'
                         : 'border-[#a24bff]/15 text-slate-400 hover:border-[#a24bff]/30 hover:text-white'
@@ -582,11 +648,12 @@ const BookingPage = () => {
               </div>
             </div>
 
+            {/* Desktop CTA (inline) */}
             {selectedTime && (
               <button
                 type="button"
                 onClick={() => setView('form')}
-                className="group flex w-full items-center justify-center gap-3 rounded-2xl py-4 text-sm font-bold uppercase tracking-widest text-white transition-all hover:gap-4"
+                className="hidden lg:flex group w-full items-center justify-center gap-3 rounded-2xl py-4 text-sm font-bold uppercase tracking-widest text-white transition-all hover:gap-4"
                 style={{ background: 'linear-gradient(135deg, #7724C4 0%, #a24bff 100%)', boxShadow: '0 8px 30px rgba(162,75,255,0.3)' }}
               >
                 {t('booking.continueToCalendar')}
@@ -596,6 +663,13 @@ const BookingPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Mobile sticky CTA */}
+      <StickyMobileCTA
+        label={selectedTime ? (isES ? 'Continuar' : 'Continue') : (isES ? 'Selecciona un horario' : 'Select a time slot')}
+        onClick={() => setView('form')}
+        disabled={!selectedTime}
+      />
     </div>
   );
 
@@ -603,24 +677,33 @@ const BookingPage = () => {
   if (view === 'form') return (
     <div className="flex min-h-[calc(100vh-80px)] flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
       <Sidebar />
-      <div className="flex-1 space-y-6">
+      <div className="flex-1 space-y-5 pb-28 lg:pb-0">
         <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={() => setView('calendar')}
-            className="text-sm font-medium text-slate-500 transition hover:text-white"
+            className="flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-white"
           >
+            <ChevronLeft className="h-4 w-4" />
             {t('booking.backToSelection')}
           </button>
           <div className="h-px flex-1 bg-[#19102f]" />
         </div>
+
+        <MobileSummary />
         <Steps />
+
         {error && (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-[#a24bff]/15 bg-[#120a26]/60 p-6 backdrop-blur lg:max-w-lg">
-          <div className="mb-6 flex items-center gap-3">
+        <form
+          id="booking-form"
+          ref={formRef}
+          onSubmit={handleSubmit}
+          className="space-y-5 rounded-2xl border border-[#a24bff]/15 bg-[#120a26]/60 p-5 backdrop-blur lg:max-w-lg"
+        >
+          <div className="mb-5 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#a24bff]/10">
               <User className="h-5 w-5 text-[#a24bff]" />
             </div>
@@ -633,35 +716,30 @@ const BookingPage = () => {
             </div>
           </div>
 
-          {[
-            { key: 'nombre', label: t('booking.fullName'), type: 'text', ph: t('booking.namePlaceholder'), icon: <User className="h-4 w-4" />, required: true },
-            { key: 'empresa', label: t('booking.company'), type: 'text', ph: t('booking.companyPlaceholder'), icon: <Building2 className="h-4 w-4" />, required: false },
-            { key: 'email', label: t('booking.email'), type: 'email', ph: t('booking.emailPlaceholder'), icon: <Mail className="h-4 w-4" />, required: true },
-          ].map(({ key, label, type, ph, icon, required }) => (
-            <label key={key} className="flex flex-col gap-1.5 text-sm">
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-500">{label}{required ? '' : <span className="ml-1 text-slate-700">(opcional)</span>}</span>
-              <div className="relative">
-                <div className="pointer-events-none absolute left-4 top-3.5 text-slate-600">{icon}</div>
-                <input
-                  type={type}
-                  value={formData[key]}
-                  onChange={e => setFormData(p => ({ ...p, [key]: e.target.value }))}
-                  required={required}
-                  placeholder={ph}
-                  className="w-full rounded-xl border border-[#a24bff]/15 bg-[#120a26]/80 py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-700 focus:border-[#a24bff]/60 focus:outline-none focus:ring-2 focus:ring-[#a24bff]/20 transition"
-                />
-              </div>
-            </label>
-          ))}
+          {/* Name */}
+          <label className="flex flex-col gap-1.5 text-sm">
+            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">{t('booking.fullName')}</span>
+            <div className="relative">
+              <User className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-600" />
+              <input
+                type="text"
+                value={formData.nombre}
+                onChange={e => setFormData(p => ({ ...p, nombre: e.target.value }))}
+                required
+                placeholder={t('booking.namePlaceholder')}
+                className="w-full rounded-xl border border-[#a24bff]/15 bg-[#120a26]/80 py-3.5 pl-11 pr-4 text-sm text-white placeholder:text-slate-700 focus:border-[#a24bff]/60 focus:outline-none focus:ring-2 focus:ring-[#a24bff]/20 transition"
+              />
+            </div>
+          </label>
 
-          {/* Phone with country code */}
+          {/* Phone */}
           <label className="flex flex-col gap-1.5 text-sm">
             <span className="text-xs font-bold uppercase tracking-widest text-slate-500">{t('booking.phone')}</span>
             <div className="flex gap-2">
               <select
                 value={formData.countryCode}
                 onChange={e => setFormData(p => ({ ...p, countryCode: e.target.value }))}
-                className="rounded-xl border border-[#a24bff]/15 bg-[#120a26]/80 px-3 py-3 text-sm text-white focus:border-[#a24bff]/60 focus:outline-none"
+                className="rounded-xl border border-[#a24bff]/15 bg-[#120a26]/80 px-3 py-3.5 text-sm text-white focus:border-[#a24bff]/60 focus:outline-none"
               >
                 <option value="52">🇲🇽 +52</option>
                 <option value="1">🇺🇸 +1</option>
@@ -679,16 +757,53 @@ const BookingPage = () => {
                   onChange={e => setFormData(p => ({ ...p, telefono: e.target.value.replace(/\D/g, '') }))}
                   required
                   placeholder={t('booking.phonePlaceholder')}
-                  className="w-full rounded-xl border border-[#a24bff]/15 bg-[#120a26]/80 py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-700 focus:border-[#a24bff]/60 focus:outline-none focus:ring-2 focus:ring-[#a24bff]/20 transition"
+                  className="w-full rounded-xl border border-[#a24bff]/15 bg-[#120a26]/80 py-3.5 pl-11 pr-4 text-sm text-white placeholder:text-slate-700 focus:border-[#a24bff]/60 focus:outline-none focus:ring-2 focus:ring-[#a24bff]/20 transition"
                 />
               </div>
             </div>
           </label>
 
+          {/* Email */}
+          <label className="flex flex-col gap-1.5 text-sm">
+            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
+              {t('booking.email')}
+              <span className="ml-2 text-[10px] normal-case tracking-normal text-slate-600">(opcional)</span>
+            </span>
+            <div className="relative">
+              <Mail className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-600" />
+              <input
+                type="email"
+                value={formData.email}
+                onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
+                placeholder={t('booking.emailPlaceholder')}
+                className="w-full rounded-xl border border-[#a24bff]/15 bg-[#120a26]/80 py-3.5 pl-11 pr-4 text-sm text-white placeholder:text-slate-700 focus:border-[#a24bff]/60 focus:outline-none focus:ring-2 focus:ring-[#a24bff]/20 transition"
+              />
+            </div>
+          </label>
+
+          {/* Empresa — hidden on mobile, visible on desktop */}
+          <label className="hidden lg:flex flex-col gap-1.5 text-sm">
+            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
+              {t('booking.company')}
+              <span className="ml-2 text-[10px] normal-case tracking-normal text-slate-600">(opcional)</span>
+            </span>
+            <div className="relative">
+              <Building2 className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-600" />
+              <input
+                type="text"
+                value={formData.empresa}
+                onChange={e => setFormData(p => ({ ...p, empresa: e.target.value }))}
+                placeholder={t('booking.companyPlaceholder')}
+                className="w-full rounded-xl border border-[#a24bff]/15 bg-[#120a26]/80 py-3.5 pl-11 pr-4 text-sm text-white placeholder:text-slate-700 focus:border-[#a24bff]/60 focus:outline-none focus:ring-2 focus:ring-[#a24bff]/20 transition"
+              />
+            </div>
+          </label>
+
+          {/* Desktop submit button */}
           <button
             type="submit"
             disabled={bookingLoading}
-            className="mt-2 flex w-full items-center justify-center gap-3 rounded-2xl py-4 text-sm font-bold uppercase tracking-widest text-white transition-all disabled:opacity-60"
+            className="hidden lg:flex mt-2 w-full items-center justify-center gap-3 rounded-2xl py-4 text-sm font-bold uppercase tracking-widest text-white transition-all disabled:opacity-60"
             style={{ background: 'linear-gradient(135deg, #7724C4 0%, #a24bff 100%)', boxShadow: '0 8px 30px rgba(162,75,255,0.3)' }}
           >
             {bookingLoading ? (
@@ -699,6 +814,14 @@ const BookingPage = () => {
           </button>
         </form>
       </div>
+
+      {/* Mobile sticky submit */}
+      <StickyMobileCTA
+        label={bookingLoading ? t('booking.processing') : t('booking.confirmBooking')}
+        type="submit"
+        form="booking-form"
+        disabled={bookingLoading}
+      />
     </div>
   );
 
@@ -706,7 +829,6 @@ const BookingPage = () => {
   return (
     <div className="flex min-h-[calc(100vh-80px)] flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-lg space-y-6 text-center">
-        {/* Success icon */}
         <div className="relative mx-auto flex h-28 w-28 items-center justify-center">
           <div className="absolute inset-0 animate-ping rounded-full opacity-25" style={{ background: 'linear-gradient(135deg, #7724C4 0%, #a24bff 100%)' }} />
           <div className="relative flex h-28 w-28 items-center justify-center rounded-full" style={{ background: 'linear-gradient(135deg, #7724C4 0%, #a24bff 100%)' }}>
@@ -719,7 +841,6 @@ const BookingPage = () => {
           <p className="mt-2 text-slate-400">{t('booking.confirmationDesc')}</p>
         </div>
 
-        {/* Summary card */}
         {confirmation && (
           <div className="rounded-2xl border border-[#a24bff]/20 bg-[#0A0518]/80 p-6 text-left backdrop-blur">
             <div className="space-y-4 text-sm">
@@ -760,7 +881,6 @@ const BookingPage = () => {
           </div>
         )}
 
-        {/* WhatsApp notice */}
         <div className="flex items-center gap-3 rounded-2xl border border-green-500/20 bg-green-500/5 px-5 py-4">
           <MessageCircle className="h-5 w-5 shrink-0 text-green-400" />
           <p className="text-left text-sm text-slate-400">{t('booking.expect1')}</p>
@@ -768,8 +888,13 @@ const BookingPage = () => {
 
         <button
           type="button"
-          onClick={() => { setConfirmation(null); setSelectedTime(''); setFormData({ nombre: '', telefono: '', email: '', empresa: '', countryCode: '52' }); setView('selection'); }}
-          className="rounded-2xl border border-[#a24bff]/15 px-8 py-3 text-sm font-semibold text-slate-400 transition hover:border-slate-700 hover:text-white"
+          onClick={() => {
+            setConfirmation(null);
+            setSelectedTime('');
+            setFormData({ nombre: '', telefono: '', email: '', empresa: '', countryCode: '52' });
+            setView('selection');
+          }}
+          className="rounded-2xl border border-[#a24bff]/15 px-8 py-3 text-sm font-semibold text-slate-400 transition hover:border-slate-700 hover:text-white active:scale-95"
         >
           {t('booking.bookAnother')}
         </button>
@@ -779,5 +904,3 @@ const BookingPage = () => {
 };
 
 export default BookingPage;
-
-
